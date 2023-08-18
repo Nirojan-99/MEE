@@ -1,6 +1,7 @@
 import React from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import { IconButton } from "@mui/material";
+import Post from "./Post";
 
 export default function SearchBox() {
   return (
@@ -13,6 +14,9 @@ export default function SearchBox() {
       </div>
       <div className="text-2xl font-bold text-[#333] my-5 font-['roboto']">
         For you
+      </div>
+      <div>
+        <Post />
       </div>
     </div>
   );

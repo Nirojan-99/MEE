@@ -10,8 +10,8 @@ import NotificationsNoneOutlinedIcon from "@mui/icons-material/NotificationsNone
 import NotificationsIcon from "@mui/icons-material/Notifications";
 import EmailIcon from "@mui/icons-material/Email";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
-import NotListedLocationOutlinedIcon from '@mui/icons-material/NotListedLocationOutlined';
-import BookmarkBorderOutlinedIcon from '@mui/icons-material/BookmarkBorderOutlined';
+import NotListedLocationOutlinedIcon from "@mui/icons-material/NotListedLocationOutlined";
+import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
 
 export default function NavBar() {
   return (
@@ -32,23 +32,28 @@ export default function NavBar() {
       <div className="mt-7 flex flex-col space-y-2 flex-1 ">
         <div className="flex  flex-row space-x-5 items-center cursor-pointer hover:bg-[#d5f1f6] p-2 rounded-full pr-3">
           <HomeOutlinedIcon sx={{ color: "#299FB5" }} />
-          <div className="text-[#299FB5] font-bold text-[13px]">Home</div>
+          <a href="/" className="text-[#299FB5] font-bold text-[13px]">
+            Home
+          </a>
         </div>
         <div className="flex  flex-row space-x-5 items-center cursor-pointer hover:bg-[#d5f1f6] p-2 rounded-full pr-3">
           <AccountCircleOutlinedIcon sx={{ color: "#299FB5" }} />
-          <div className="text-[#299FB5] font-bold text-[13px]">Account</div>
+          <a href="/account" className="text-[#299FB5] font-bold text-[13px]">
+            Account
+          </a>
         </div>
         <div className="flex  flex-row space-x-5 items-center cursor-pointer hover:bg-[#d5f1f6] p-2 rounded-full pr-3">
           <StorefrontOutlinedIcon sx={{ color: "#299FB5" }} />
-          <div className="text-[#299FB5] font-bold text-[13px]">
+          <a
+            href="/marketplace"
+            className="text-[#299FB5] font-bold text-[13px]"
+          >
             Marketplace
-          </div>
+          </a>
         </div>
         <div className="flex  flex-row space-x-5 items-center cursor-pointer hover:bg-[#d5f1f6] p-2 rounded-full pr-3">
           <NotificationsNoneOutlinedIcon sx={{ color: "#299FB5" }} />
-          <div className="text-[#299FB5] font-bold text-[13px]">
-            Notification
-          </div>
+          <a className="text-[#299FB5] font-bold text-[13px]">Notification</a>
         </div>
         <div className="flex  flex-row space-x-5 items-center cursor-pointer hover:bg-[#d5f1f6] p-2 rounded-full pr-3">
           <EmailOutlinedIcon sx={{ color: "#299FB5" }} />
@@ -61,7 +66,9 @@ export default function NavBar() {
         {/* <div className="flex-1"/> */}
         <div className="flex  flex-row space-x-5 items-center cursor-pointer hover:bg-[#d5f1f6] p-2 rounded-full pr-3">
           <NotListedLocationOutlinedIcon sx={{ color: "#299FB5" }} />
-          <div className="text-[#299FB5] font-bold text-[13px]">Help & Support</div>
+          <div className="text-[#299FB5] font-bold text-[13px]">
+            Help & Support
+          </div>
         </div>
       </div>
     </div>

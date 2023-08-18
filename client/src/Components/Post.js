@@ -1,9 +1,19 @@
-import { Avatar } from "@mui/material";
-import React from "react";
+import { Avatar, IconButton } from "@mui/material";
+import React, { useState } from "react";
 import PostMenu from "./PostMenu";
 import ImageStack from "./ImageStack";
+import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
+import FavoriteIcon from "@mui/icons-material/Favorite";
+import ChatOutlinedIcon from "@mui/icons-material/ChatOutlined";
+import SendIcon from "@mui/icons-material/Send";
+import Comment from "./Comment";
 
 export default function Post() {
+  const [isCommentClicked, setCommentClicked] = useState(false);
+  const [isLikeClicked, setLikeClicked] = useState(false);
+  const [width, setWidth] = useState("0px");
+
+  const handleTextareaChange = (event) => {};
   return (
     <div className="bg-[#eaf8fa] rounded-xl mt-5 px-4 py-3 border border-[#c1e9f0]">
       {/*  */}
@@ -46,8 +56,52 @@ export default function Post() {
         despite having the air conditioning on recycled air. The llama couldn't
         resist trying the lemonade.
       </div>
-      <div className="mt-2"/>
+      <div className="mt-2" />
       <ImageStack />
+      {/*  */}
+      <div className="mt-2 flex flex-1 flex-row items-start space-x-2">
+        {isLikeClicked ? (
+          <IconButton onClick={() => setLikeClicked(false)}>
+            <FavoriteIcon sx={{ color: "red" }} />
+          </IconButton>
+        ) : (
+          <IconButton onClick={() => setLikeClicked(true)}>
+            <FavoriteBorderOutlinedIcon />
+          </IconButton>
+        )}
+
+        <IconButton
+          onClick={() => {
+            setWidth("100%");
+            setCommentClicked(true);
+          }}
+        >
+          <ChatOutlinedIcon />
+        </IconButton>
+      </div>
+      {/*  */}
+      <div>
+        <div>
+          <Comment />
+          <Comment />
+        </div>
+        {/*  */}
+        <div
+          className={"flex-1 flex flex-row space-x-2 items-center object-none"}
+        >
+          <div
+            className={`px-2 py-1 bg-[#c1eaf1] rounded-xl transition-all w-full `}
+          >
+            <textarea
+              onChange={handleTextareaChange}
+              className={`border-0 outline-0 text-[14px] font-bold w-full bg-transparent resize-none overflow-visible `}
+            />
+          </div>
+          <IconButton sx={{ bgcolor: "#c1eaf1" }}>
+            <SendIcon sx={{ width: 23, height: 23, color: "#333" }} />
+          </IconButton>
+        </div>
+      </div>
     </div>
   );
 }
