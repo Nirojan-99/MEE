@@ -8,6 +8,9 @@ api = Api(app)
 
 
 api.add_resource(User, "/")
+@app.route()
+def call():
+    
 app.add_url_rule('/user/update_profile_picture', view_func=User.as_view('put_profile_picture'))
 
 
