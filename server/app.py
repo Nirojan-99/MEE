@@ -5,6 +5,7 @@ from Utils.user import User
 from db import initDB
 from bson import ObjectId
 from datetime import datetime
+from token import generate_token, decode_token
 
 # global variable
 app = Flask(__name__)
@@ -15,6 +16,11 @@ productProfile = initDB().MEE.productProfile
 userProfile = initDB().MEE.userProfile
 imageUploadPath = "./Uploads/"
 
+
+# config
+app.config['SECRET_KEY'] = 'MEE-auth'
+
+# TODO:login endpoint
 
 api.add_resource(User, "/users")
 

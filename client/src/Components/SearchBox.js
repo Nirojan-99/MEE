@@ -2,6 +2,7 @@ import React from "react";
 import SearchIcon from "@mui/icons-material/Search";
 import { IconButton } from "@mui/material";
 import Post from "./Post";
+import Recommendation from "./Recommendation";
 
 export default function SearchBox() {
   return (
@@ -16,7 +17,8 @@ export default function SearchBox() {
         For you
       </div>
       <div>
-        <Post />
+        <Recommendation />
+        <Recommendation />
       </div>
     </div>
   );

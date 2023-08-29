@@ -5,6 +5,7 @@ import ForgotPassword from "./Pages/ForgotPassword";
 import Feed from "./Pages/Feed";
 import Profile from "./Pages/Profile";
 import MarketPlace from "./Pages/MarketPlace";
+import Post from "./Pages/Post";
 
 export default function Pages() {
   return (
@@ -14,6 +15,7 @@ export default function Pages() {
       <Route path="/forget-password" element={<ForgotPassword />} />
       <Route path="/marketplace" element={<MarketPlace />} />
       <Route path="/account" element={<Profile />} />
+      <Route path="/post/:id" element={<Post />} />
       <Route path="/" element={<Feed />} />
     </Routes>
   );
