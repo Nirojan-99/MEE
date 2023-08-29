@@ -6,8 +6,6 @@ from bson import ObjectId
 
 class User(Resource):
     client = initDB().MEE.users
-    # parser = reqparse.RequestParser()
-    # parser.add_argument("title", required=True)
 
     def get(self):
         return jsonify(self.client.find())
@@ -26,6 +24,3 @@ class User(Resource):
     def delete(self):
         query = {"_id": ObjectId(request.args.get("id"))}
         self.client.delete_one(query)
-
-    def put_profile_picture(self):
-        print("called")
