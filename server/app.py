@@ -8,6 +8,8 @@ from datetime import datetime
 from Utils.token import generate_token, decode_token
 from flask_cors import CORS
 from Utils.auth import authenticate
+from sklearn.feature_extraction.text import TfidfVectorizer
+import joblib
 
 # global variable
 app = Flask(__name__)
@@ -219,14 +221,24 @@ def addComment():
     date = today.strftime("%m/%d/%y")
     time = today.strftime("%H:%M:%S")
 
-    sentiment = ""  # lavaniya model
+    loaded_model = joblib.load('../Model/IT20202422/sentiment.joblib')
+    loaded_tfidf_vectorizer = joblib.load(
+        '../Model/IT20202422/tfidf_vectorizer.pkl')
+
+    data = loaded_tfidf_vectorizer.transform([comment])
+
+    res = loaded_model.predict(data)
+    if (res[0] == 0):
+        sentiment = "Negative"
+    else:
+        sentiment = "Positive"
 
     userName = users.find_one({"_id": ObjectId(userID)})['name']
 
     posts.update_one({"_id": ObjectId(postID)}, {"$push":  {"comments": {
                      "comment": comment, "sentiment": sentiment, "userName": userName, "date": date, "time": time}}})
 
-    res = posts.find_one({"_id": ObjectId(postID)})
+    res = productProfile.find_one({"_id": ObjectId(postID)})  # TODO
 
     userProfile.update_one({"_id": ObjectId(userID)}, {
                            "$push": {}}, {"upsert": True})  # TODO
