@@ -3,6 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const initial = {
   token: localStorage.getItem("token"),
   userID: localStorage.getItem("userID"),
+  BASE_URL: "http://localhost:5000/api/",
 };
 
 const authStore = createSlice({

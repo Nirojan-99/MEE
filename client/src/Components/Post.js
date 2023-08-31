@@ -1,4 +1,4 @@
-import { Avatar, IconButton } from "@mui/material";
+import { Avatar, IconButton, TextareaAutosize } from "@mui/material";
 import React, { useState } from "react";
 import PostMenu from "./PostMenu";
 import ImageStack from "./ImageStack";
@@ -7,13 +7,45 @@ import FavoriteIcon from "@mui/icons-material/Favorite";
 import ChatOutlinedIcon from "@mui/icons-material/ChatOutlined";
 import SendIcon from "@mui/icons-material/Send";
 import Comment from "./Comment";
+import axios from "axios";
+import { useSelector } from "react-redux";
 
 export default function Post() {
-  const [isCommentClicked, setCommentClicked] = useState(false);
   const [isLikeClicked, setLikeClicked] = useState(false);
-  const [width, setWidth] = useState("0px");
+  const [commentCount, setCommentCount] = useState(2);
+  const [comments, setComments] = useState([1, 2, 3, 4]);
+  const [comment, setComment] = useState("");
+  //url
+  const { BASE_URL, token } = useSelector((state) => state.auth);
 
-  const handleTextareaChange = (event) => {};
+  const addComment = () => {
+    if (!comment.trim()) {
+      return;
+    }
+
+    const data = new FormData();
+    data.append("comment", comment);
+
+    axios
+      .post(`${BASE_URL}auth/login`, data, { headers: { token: token } })
+      .then((res) => {
+        setComment("");
+      })
+      .catch(() => {});
+  };
+
+  const likePost = () => {
+    const data = new FormData();
+    data.append("comment", comment);
+
+    axios.post(`${BASE_URL}auth/login`, data),
+      { headers: { token: token } }
+        .then((res) => {
+          setComment("");
+        })
+        .catch(() => {});
+  };
+
   return (
     <div className="bg-[#eaf8fa] rounded-xl mt-5 px-4 py-3 border border-[#c1e9f0]">
       {/*  */}
@@ -69,21 +101,30 @@ export default function Post() {
             <FavoriteBorderOutlinedIcon />
           </IconButton>
         )}
-
-        <IconButton
-          onClick={() => {
-            setWidth("100%");
-            setCommentClicked(true);
-          }}
-        >
+        <IconButton>
           <ChatOutlinedIcon />
         </IconButton>
       </div>
       {/*  */}
       <div>
         <div>
-          <Comment />
-          <Comment />
+          {comments.map((item, index) => {
+            if (index < commentCount) {
+              return <Comment />;
+            }
+          })}
+          {commentCount <= comments.length && (
+            <div
+              onClick={() => {
+                setCommentCount((pre) => {
+                  return pre + 1;
+                });
+              }}
+              className="py-2 text-[12px] font-bold cursor-pointer transition-all"
+            >
+              view more comments
+            </div>
+          )}
         </div>
         {/*  */}
         <div
@@ -92,12 +133,23 @@ export default function Post() {
           <div
             className={`px-2 py-1 bg-[#c1eaf1] rounded-xl transition-all w-full `}
           >
-            <textarea
-              onChange={handleTextareaChange}
-              className={`border-0 outline-0 text-[14px] font-bold w-full bg-transparent resize-none overflow-visible `}
+            <TextareaAutosize
+              value={comment}
+              onChange={(event) => {
+                setComment(event.target.value);
+              }}
+              className="text-[14px] font-semibold"
+              style={{
+                width: "100%",
+                backgroundColor: "transparent",
+                border: 0,
+                outline: 0,
+              }}
+              minRows={1}
+              placeholder="your feedback"
             />
           </div>
-          <IconButton sx={{ bgcolor: "#c1eaf1" }}>
+          <IconButton onClick={addComment} sx={{ bgcolor: "#c1eaf1" }}>
             <SendIcon sx={{ width: 23, height: 23, color: "#333" }} />
           </IconButton>
         </div>

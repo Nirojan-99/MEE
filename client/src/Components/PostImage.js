@@ -73,30 +73,6 @@ function PostImage(props) {
     //     toast("unable to uploade dp , try again", { type: "error" });
     //   });
   };
-  //delete dp
-  const removeImage = () => {
-    // axios
-    //   .delete(`${URL}users/dp/${props.userID}`, {
-    //     headers: { Authorization: "Agriuservalidation " + props.token },
-    //   })
-    //   .then((res) => {
-    //     setPreviewUrl("");
-    //     toast("DP removed", { type: "info" });
-    //   })
-    //   .catch((er) => {});
-  };
-  //useEffect hook
-  useEffect(() => {
-    // axios
-    //   .get(`${URL}users/dp/${props.userID}`, {
-    //     headers: { Authorization: "Agriuservalidation " + props.token },
-    //   })
-    //   .then((res) => {
-    //     setPreviewUrl(res.data.dp);
-    //   })
-    //   .catch((er) => {
-    //   });
-  }, []);
 
   return (
     <>
@@ -151,7 +127,11 @@ function PostImage(props) {
             >
               <Grid item>
                 <Button
-                  onClick={uploadImage}
+                  onClick={() => {
+                    props.handleClose(image, previewUrl);
+                    setImage();
+                    setPreviewUrl();
+                  }}
                   disableElevation
                   sx={{
                     bgcolor: "#064A82",
@@ -171,7 +151,11 @@ function PostImage(props) {
               <Grid item>
                 <Button
                   sx={{ color: "#333", fontFamily: "open sans" }}
-                  onClick={props.handleClose}
+                  onClick={() => {
+                    props.handleClose();
+                    setImage();
+                    setPreviewUrl();
+                  }}
                 >
                   Cancel
                 </Button>

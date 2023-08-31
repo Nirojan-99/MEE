@@ -5,10 +5,13 @@ from Utils.user import User
 from db import initDB
 from bson import ObjectId
 from datetime import datetime
-from token import generate_token, decode_token
+from Utils.token import generate_token, decode_token
+from flask_cors import CORS
+from Utils.auth import authenticate
 
 # global variable
 app = Flask(__name__)
+CORS(app)
 api = Api(app)
 users = initDB().MEE.users
 posts = initDB().MEE.posts
@@ -20,16 +23,87 @@ imageUploadPath = "./Uploads/"
 # config
 app.config['SECRET_KEY'] = 'MEE-auth'
 
-# TODO:login endpoint
 
-api.add_resource(User, "/users")
+# user resource
+
+# api.add_resource(User, "/api/users")
+
+# update user
+
+
+@app.route('/api/users', methods=['PUT'])
+def updateUser():
+    userID = authenticate(request, app)
+    if userID is False:
+        return {"auth": False}, 404
+
+    data = request.form.to_dict()
+    query = {"_id": ObjectId(userID)}
+    newValues = {"$set":  data}
+    users.update_one(query, newValues)
+
+    return {"ack": True}, 200
+
+# get one user
+
+
+@app.route('/api/users/<id>', methods=['GET'])
+def getUser(id):
+    userID = authenticate(request, app)
+    if userID is False:
+        return {"auth": False}, 404
+
+    userData = users.find_one({"_id": ObjectId(id)})
+
+    if (userData is None):
+        return {"ack": False}, 400
+
+    print(userData)
+    userData['_id'] = str(userData['_id'])
+
+    return {"data": userData}, 200
+
+# register endpoint
+
+
+@app.route('/api/auth/register', methods=['POST'])
+def register():
+    print(request.form.to_dict())
+    res = users.insert_one(request.form.to_dict())
+
+    if res.inserted_id:
+        token = generate_token(str(res.inserted_id), app)
+
+        return {"token": token, "userID": str(res.inserted_id)}, 200
+    else:
+        return {"ack": False}, 404
+
+# login endpoint
+
+
+@app.route('/api/auth/login', methods=['POST'])
+def login():
+    email = request.form['email']
+    password = request.form['password']
+
+    res = users.find_one({"email": email, "password": password})
+
+    if res and res.get("email") == email:
+        token = generate_token(str(res.get("_id")), app)
+
+        return {"token": token, "userID": str(res.get("_id"))}
+    else:
+        return {"auth": False}, 404
+
 
 # make recommendation list
 
 
 @app.route('/api/recommend', methods=['GET'])
 def createRecommendation():
-    userID = request.form['userID']
+    userID = authenticate(request, app)
+    if userID is False:
+        return {"auth": False}, 404
 
     res = userProfile.find_one({"_id": ObjectId(userID)})
 
@@ -37,15 +111,41 @@ def createRecommendation():
 
     data = posts.find({})  # TODO
 
-    return {"data": data}  # TODO
+    data_list = []
+    for document in data:
+        document['_id'] = str(document['_id'])
+        data_list.append(document)
+
+    return {"data": data_list}  # TODO
+
+# get latest posts
+
+
+@app.route('/api/posts', methods=['GET'])
+def getLatestPosts():
+    userID = authenticate(request, app)
+    if userID is False:
+        return {"auth": False}, 404
+
+    data = posts.find().sort('date', -1).limit(20)
+
+    data_list = []
+    for document in data:
+        document['_id'] = str(document['_id'])
+        data_list.append(document)
+
+    return {"data": data_list}, 200
 
 # interact with product/click
 
 
 @app.route('/api/interact', methods=['POST'])
 def interactWithProduct():
+    userID = authenticate(request, app)
+    if userID is False:
+        return {"auth": False}, 404
+
     productID = request.form['productID']
-    userID = request.form['userID']
 
     data = productProfile.find_one({"_id": ObjectId(productID)})
 
@@ -54,13 +154,34 @@ def interactWithProduct():
 
     return {"ack": True}, 200
 
+# like the post
+
+
+# @app.route('/api/posts/like', methods=['POST'])
+# def likePost():
+#     userID = authenticate(request, app)
+#     if userID is False:
+#         return {"auth": False}, 404
+
+#     productID = request.form['productID']
+
+#     data = productProfile.find_one({"_id": ObjectId(productID)})
+
+#     userProfile.update_one({"_id": ObjectId(userID)}, {
+#                            "$push": {}}, {"upsert": True})  # TODO
+
+#     return {"ack": True}, 200
+
 # search product
 
 
 @app.route('/api/search', methods=['POST'])
 def searchProduct():
+    userID = authenticate(request, app)
+    if userID is False:
+        return {"auth": False}, 404
+
     query = request.form['query']
-    userID = request.form['userID']
 
     extractedKeyWords = []  # nirojan model
 
@@ -87,9 +208,12 @@ def predictNextWord():
 
 @app.route('/api/sentiment-analysis', methods=['POST'])
 def addComment():
+    userID = authenticate(request, app)
+    if userID is False:
+        return {"auth": False}, 404
+
     comment = request.form['comment']
     postID = request.form['postID']
-    userID = request.form['userID']
 
     today = datetime.now()
     date = today.strftime("%m/%d/%y")
@@ -114,7 +238,10 @@ def addComment():
 
 @app.route('/api/posts', methods=['POST'])
 def savePost():
-    userID = request.form['userID']
+    userID = authenticate(request, app)
+    if userID is False:
+        return {"auth": False}, 404
+
     description = request.form.get('description', "")
 
     extractedKeyWords = []  # nirojan model
@@ -135,8 +262,11 @@ def savePost():
 
 @app.route('/api/posts/image', methods=['POST'])
 def trackImage():
+    userID = authenticate(request, app)
+    if userID is False:
+        return {"auth": False}, 404
+
     image = request.files['image']
-    userID = request.form['userID']
     description = request.form.get('description', "")
 
     image.save(imageUploadPath+image.filename)

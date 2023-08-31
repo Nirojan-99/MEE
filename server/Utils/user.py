@@ -8,7 +8,12 @@ class User(Resource):
     client = initDB().MEE.users
 
     def get(self):
-        return jsonify(self.client.find())
+        data_list = []
+        for document in self.client.find():
+            document['_id'] = str(document['_id'])
+            data_list.append(document)
+            
+        return {"data": data_list}, 200
 
     def post(self):
         self.client.insert_one(request.form.to_dict())

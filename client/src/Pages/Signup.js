@@ -8,10 +8,53 @@ import logo from "../Assets/logo.png";
 import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import LockOutlinedIcon from "@mui/icons-material/LockOutlined";
 import AccountCircleOutlinedIcon from "@mui/icons-material/AccountCircleOutlined";
+import CallIcon from "@mui/icons-material/Call";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
+import { login } from "../Store/auth";
+import axios from "axios";
 
 export default function Signup(props) {
   const [email, setEmail] = useState("");
+  const [userName, setUserName] = useState("");
+  const [contactNumber, setContactNumber] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  //url
+  const { BASE_URL } = useSelector((state) => state.auth);
+
+  //submit handler
+  const submitHandler = () => {
+    if (
+      !email.trim() ||
+      !password.trim() ||
+      !contactNumber.trim() ||
+      !password.trim() ||
+      !userName.trim()
+    ) {
+      return;
+    }
+    if (password != confirmPassword) {
+      return;
+    }
+
+    const data = new FormData();
+    data.append("email", email);
+    data.append("password", password);
+    data.append("contactNumber", contactNumber);
+    data.append("userName", userName);
+
+    axios
+      .post(`${BASE_URL}auth/register`, data)
+      .then((res) => {
+        dispatch(login({ userID: res.data.userID, token: res.data.token }));
+        navigate("/");
+      })
+      .catch(() => {});
+  };
 
   return (
     <Box py={7} px={15}>
@@ -35,33 +78,50 @@ export default function Signup(props) {
                 Register your account
               </div>
               <div className="w-full mt-5">
-                <div className="px-2 py-1 w-full border-[#999] border rounded-md flex-1 flex space-x-2 items-center bg-[#FAFBFF]">
+                <div className="px-2 py-2 w-full border-[#999] border rounded-md flex-1 flex space-x-2 items-center bg-[#FAFBFF]">
                   <AccountCircleOutlinedIcon sx={{ color: "#333" }} />
                   <input
-                    className="border-0 outline-0 flex-1  min-w-0 text-lg font-semibold placeholder:text-slate-500 placeholder:text-[15px] text-[15px]"
+                    value={userName}
+                    onChange={(event) => setUserName(event.target.value)}
+                    className="border-0 outline-0 flex-1  min-w-0  font-semibold placeholder:text-slate-500 placeholder:text-[13px] text-[13px]"
                     placeholder="User Name"
                   />
                 </div>
-                <div className="px-2 mt-6 py-1  w-full border-[#999] border rounded-md flex-1 flex space-x-2 items-center bg-[#FAFBFF]">
+                <div className="px-2 mt-6 py-2  w-full border-[#999] border rounded-md flex-1 flex space-x-2 items-center bg-[#FAFBFF]">
                   <EmailOutlinedIcon sx={{ color: "#333" }} />
                   <input
-                    className="border-0 outline-0 flex-1  min-w-0 text-lg font-semibold placeholder:text-slate-500 placeholder:text-[15px] text-[15px]"
+                    value={email}
+                    onChange={(event) => setEmail(event.target.value)}
+                    className="border-0 outline-0 flex-1  min-w-0  font-semibold placeholder:text-slate-500 placeholder:text-[13px] text-[13px]"
                     placeholder="Email"
                   />
                 </div>
-                <div className="px-2 mt-6 py-1 w-full border-[#999] border rounded-md flex-1 flex space-x-2 items-center bg-[#FAFBFF]">
+                <div className="px-2 mt-6 py-2  w-full border-[#999] border rounded-md flex-1 flex space-x-2 items-center bg-[#FAFBFF]">
+                  <CallIcon sx={{ color: "#333" }} />
+                  <input
+                    value={contactNumber}
+                    onChange={(event) => setContactNumber(event.target.value)}
+                    className="border-0 outline-0 flex-1  min-w-0  font-semibold placeholder:text-slate-500 placeholder:text-[13px] text-[13px]"
+                    placeholder="Contact Number"
+                  />
+                </div>
+                <div className="px-2 mt-6 py-2 w-full border-[#999] border rounded-md flex-1 flex space-x-2 items-center bg-[#FAFBFF]">
                   <LockOutlinedIcon sx={{ color: "#333" }} />
                   <input
+                    value={password}
+                    onChange={(event) => setPassword(event.target.value)}
                     type="password"
-                    className="border-0 outline-0 flex-1  min-w-0 text-lg font-semibold placeholder:text-slate-500 placeholder:text-[15px] text-[15px]"
+                    className="border-0 outline-0 flex-1  min-w-0  font-semibold placeholder:text-slate-500 placeholder:text-[13px] text-[13px]"
                     placeholder="Password"
                   />
                 </div>
-                <div className="px-2 mt-6 py-1 w-full border-[#999] border rounded-md flex-1 flex space-x-2 items-center bg-[#FAFBFF]">
+                <div className="px-2 mt-6 py-2 w-full border-[#999] border rounded-md flex-1 flex space-x-2 items-center bg-[#FAFBFF]">
                   <LockOutlinedIcon sx={{ color: "#333" }} />
                   <input
+                    value={confirmPassword}
+                    onChange={(event) => setConfirmPassword(event.target.value)}
                     type="password"
-                    className="border-0 outline-0 flex-1  min-w-0 text-lg font-semibold placeholder:text-slate-500 placeholder:text-[15px] text-[15px]"
+                    className="border-0 outline-0 flex-1  min-w-0  font-semibold placeholder:text-slate-500 placeholder:text-[13px] text-[13px]"
                     placeholder="Confirm Password"
                   />
                 </div>
@@ -87,6 +147,7 @@ export default function Signup(props) {
                   fullWidth
                   variant="contained"
                   sx={{ mt: 3, mb: 2 }}
+                  onClick={submitHandler}
                 >
                   Register
                 </Button>
