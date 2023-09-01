@@ -1,30 +1,42 @@
-with open('defaultdict_file.pkl', 'rb') as f:
-    model = pickle.load(f)
+import pickle
 
-# Function to predict the next word given the previous words
-def predict_next_word(prev_words):
-    prev_ngram = tuple(prev_words)
-    candidates = []
-    for ngram, prob in model.items():
-        if ngram[:-1] == prev_ngram:
-            candidates.append((ngram[-1]))
-    # candidates.sort(key=lambda x: x[1], reverse=True)
-    return candidates if candidates else None
+with open('.././Model/IT20167578/defaultdict_file.pkl', 'rb') as f:
+    model_two = pickle.load(f)
+
+with open('.././Model/IT20167578/defaultdict_file_1.pkl', 'rb') as f:
+    model_one = pickle.load(f)
 
 
 # Function to predict the next word given the previous words
-def predict_next_word(prev_words):
+def predict_next_word_two(prev_words):
     prev_ngram = tuple(prev_words)
     candidates = []
-    for ngram, prob in model.items():
+    for ngram, prob in model_two.items():
         if ngram[:-1] == prev_ngram:
-            candidates.append((ngram[-1]))
+            candidates.append((ngram[-1], prob))
     candidates.sort(key=lambda x: x[1], reverse=True)
-    return candidates if candidates else None #change prob = probability
+    return candidates if candidates else None  # change prob = probability
 
-# Example prediction
-prev_words = ['விலை']
-next_word = predict_next_word(prev_words)
 
-print('Previous words:', prev_words)
-print('Predicted next word:', next_word)
+def predict_next_word_one(prev_words):
+    prev_ngram = tuple(prev_words)
+    candidates = []
+    for ngram, prob in model_one.items():
+        if ngram[:-1] == prev_ngram:
+            candidates.append((ngram[-1], prob))
+    candidates.sort(key=lambda x: x[1], reverse=True)
+    return candidates if candidates else None  # change prob = probability
+
+
+def predict_one(words):
+    data = predict_next_word_one(words)
+    if data is not None:
+        data = [sublist[0] for sublist in data[:10]]
+    return data
+
+
+def predict_two(words):
+    data = predict_next_word_two(words)
+    if data is not None:
+        data = [sublist[0] for sublist in data[:10]]
+    return data

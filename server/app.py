@@ -10,6 +10,7 @@ from flask_cors import CORS
 from Utils.auth import authenticate
 from sklearn.feature_extraction.text import TfidfVectorizer
 import joblib
+from Utils.predict import predict_two, predict_one
 
 # global variable
 app = Flask(__name__)
@@ -201,9 +202,25 @@ def searchProduct():
 
 @app.route('/api/word-prediction', methods=['POST'])
 def predictNextWord():
-    arrayOfWords = request.form['previousWords']
-    # abiramy model
-    return {"nextWord": ""}
+    arrayOfWords = request.form['previousWords'].strip().split(" ")
+
+    if arrayOfWords is None:
+        return 404
+
+    if len(arrayOfWords) == 2:
+        next_word_one = predict_one([arrayOfWords[-1]])
+        next_word_two = predict_two(arrayOfWords)
+
+        if not isinstance(next_word_one, list):
+            next_word_one = list()
+        if not isinstance(next_word_two, list):
+            next_word_two = list()
+        res = next_word_one+next_word_two
+    else:
+        next_word_one = predict_one([arrayOfWords[-1]])
+        res = next_word_one
+
+    return {"nextWord": res}, 200
 
 # add comment
 
