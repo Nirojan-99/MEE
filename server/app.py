@@ -303,7 +303,11 @@ def trackImage():
     image.save(imageUploadPath+image.filename)
 
     detectedSentence = ""  # hithushi model
-    extractedKeyWords = []  # nirojan model
+
+    if description.strip() is "":
+        return {"ask": False}, 404
+
+    extractedKeyWords = make_prediction(description)
 
     today = datetime.now()
     date = today.strftime("%m/%d/%y")

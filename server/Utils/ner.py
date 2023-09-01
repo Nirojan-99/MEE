@@ -45,6 +45,8 @@ def predict(sentences, model):
         predicted_labels = predict_labels(tokens, model, sentences)
         output = []
         for i in range(len(tokens)):
+            if predicted_labels[i] == 'O' or predicted_labels[i] == 'PUN':
+                continue
             output.append((tokens[i], predicted_labels[i]))
         return output
 
