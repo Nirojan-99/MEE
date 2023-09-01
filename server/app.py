@@ -1,16 +1,15 @@
-from flask import Flask, request, jsonify, redirect, url_for, request, send_from_directory
+from flask import Flask, request,  request, send_from_directory
 from db import initDB
-from flask_restful import Api, reqparse
-from Utils.user import User
+from flask_restful import Api
 from db import initDB
 from bson import ObjectId
 from datetime import datetime
-from Utils.token import generate_token, decode_token
+from Utils.token import generate_token
 from flask_cors import CORS
 from Utils.auth import authenticate
-from sklearn.feature_extraction.text import TfidfVectorizer
 import joblib
 from Utils.predict import predict_two, predict_one
+from Utils.ner import make_prediction
 
 # global variable
 app = Flask(__name__)
@@ -273,7 +272,10 @@ def savePost():
 
     description = request.form.get('description', "")
 
-    extractedKeyWords = []  # nirojan model
+    if description.strip() is "":
+        return {"ask": False}, 404
+
+    extractedKeyWords = make_prediction(description)
 
     today = datetime.now()
     date = today.strftime("%m/%d/%y")
@@ -284,7 +286,7 @@ def savePost():
 
     productProfile.insert_one({})  # TODO
 
-    return {"ack": True}, 200
+    return {"data": extractedKeyWords}, 200
 
 # save post by image
 
