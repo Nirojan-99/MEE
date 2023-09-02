@@ -11,6 +11,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { Grid } from "@mui/material";
+import { toast } from "react-toastify";
 
 export default function Post() {
   const [isLikeClicked, setLikeClicked] = useState(false);
@@ -26,7 +27,9 @@ export default function Post() {
     axios
       .get(`${BASE_URL}posts/${id}`, { headers: { token } })
       .then((res) => {})
-      .catch((er) => {});
+      .catch((er) => {
+        toast("Unable to fetch data!", { type: "error" });
+      });
   }, []);
 
   const addComment = () => {
@@ -42,7 +45,9 @@ export default function Post() {
       .then((res) => {
         setComment("");
       })
-      .catch(() => {});
+      .catch(() => {
+        toast("Unable to add comment, Try again", { type: "error" });
+      });
   };
 
   const likePost = () => {
@@ -52,7 +57,9 @@ export default function Post() {
     axios
       .post(`${BASE_URL}auth/login`, data, { headers: { token } })
       .then((res) => {})
-      .catch((er) => {});
+      .catch((er) => {
+        toast("try again", { type: "error" });
+      });
   };
 
   return (

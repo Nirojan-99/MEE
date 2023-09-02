@@ -10,6 +10,7 @@ import PostImage from "./PostImage";
 import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 export default function Timeline() {
   //hook
@@ -55,7 +56,9 @@ export default function Timeline() {
         .then((res) => {
           //TODO
         })
-        .catch(() => {});
+        .catch(() => {
+          toast("Unable to post!", { type: "error" });
+        });
     } else {
       axios
         .post(`${BASE_URL}api/posts`, data, {
@@ -64,7 +67,9 @@ export default function Timeline() {
         .then((res) => {
           //TODO
         })
-        .catch(() => {});
+        .catch(() => {
+          toast("Unable to post!", { type: "error" });
+        });
     }
   };
 

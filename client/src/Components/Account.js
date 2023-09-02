@@ -5,6 +5,7 @@ import { useDispatch, useSelector } from "react-redux";
 import CustomModal from "./CustomModal";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function Account() {
   const [open, setOpen] = useState(false);
@@ -39,7 +40,9 @@ export default function Account() {
         setZip(res.data.data.zip);
         setCountry(res.data.data.country);
       })
-      .catch(() => {});
+      .catch(() => {
+        toast("Unable to fetch data!", { type: "error" });
+      });
   }, []);
 
   const submitHandler = () => {
@@ -55,7 +58,9 @@ export default function Account() {
       .then((res) => {
         window.location.reload();
       })
-      .catch(() => {});
+      .catch(() => {
+        toast("Unable to update!", { type: "error" });
+      });
   };
 
   const updatePassword = () => {
@@ -71,7 +76,9 @@ export default function Account() {
       .then((res) => {
         window.location.reload();
       })
-      .catch(() => {});
+      .catch(() => {
+        toast("Unable to update password!", { type: "error" });
+      });
   };
 
   return (

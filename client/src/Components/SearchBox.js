@@ -4,6 +4,7 @@ import { IconButton } from "@mui/material";
 import Recommendation from "./Recommendation";
 import { useSelector } from "react-redux";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function SearchBox() {
   const [recommendation, setRecommendation] = useState([]);
@@ -21,7 +22,7 @@ export default function SearchBox() {
         setRecommendation(res.data.data);
       })
       .catch((er) => {
-        console.log(er);
+        toast("No results found!", { type: "error" });
       });
   }, []);
 

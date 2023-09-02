@@ -29,9 +29,6 @@ function PostImage(props) {
   const [image, setImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
 
-  //user data
-  //   const { URL } = useSelector((state) => state.loging);
-
   //handler
   const handleFile = (file) => {
     setImage(file);
@@ -53,25 +50,6 @@ function PostImage(props) {
   const handleOnChange = (event) => {
     let imageFile = event.target.files[0];
     handleFile(imageFile);
-  };
-
-  //upload dp
-  const uploadImage = () => {
-    const data = new FormData();
-
-    data.append("dp", image);
-    data.append("id", props.userID);
-
-    // axios
-    //   .put(`${URL}users/dp/${props.userID}`, data, {
-    //     headers: { Authorization: "Agriuservalidation " + props.token },
-    //   })
-    //   .then((res) => {
-    //     toast("DP uploaded", { type: "success" });
-    //   })
-    //   .catch((er) => {
-    //     toast("unable to uploade dp , try again", { type: "error" });
-    //   });
   };
 
   return (

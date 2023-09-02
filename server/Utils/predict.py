@@ -1,13 +1,15 @@
 import pickle
 
+# model to predict with two words
 with open('.././Model/IT20167578/defaultdict_file.pkl', 'rb') as f:
     model_two = pickle.load(f)
 
+# model to predict with one words
 with open('.././Model/IT20167578/defaultdict_file_1.pkl', 'rb') as f:
     model_one = pickle.load(f)
 
 
-# Function to predict the next word given the previous words
+# Function to predict the next word given the previous two words
 def predict_next_word_two(prev_words):
     prev_ngram = tuple(prev_words)
     candidates = []
@@ -15,7 +17,9 @@ def predict_next_word_two(prev_words):
         if ngram[:-1] == prev_ngram:
             candidates.append((ngram[-1], prob))
     candidates.sort(key=lambda x: x[1], reverse=True)
-    return candidates if candidates else None  # change prob = probability
+    return candidates if candidates else None
+
+# Function to predict the next word given the previous one word
 
 
 def predict_next_word_one(prev_words):
@@ -25,7 +29,7 @@ def predict_next_word_one(prev_words):
         if ngram[:-1] == prev_ngram:
             candidates.append((ngram[-1], prob))
     candidates.sort(key=lambda x: x[1], reverse=True)
-    return candidates if candidates else None  # change prob = probability
+    return candidates if candidates else None
 
 
 def predict_one(words):

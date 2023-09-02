@@ -13,6 +13,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { login } from "../Store/auth";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 export default function Signup(props) {
   const [email, setEmail] = useState("");
@@ -53,7 +54,9 @@ export default function Signup(props) {
         dispatch(login({ userID: res.data.userID, token: res.data.token }));
         navigate("/");
       })
-      .catch(() => {});
+      .catch(() => {
+        toast("Invalid Signup", { type: "error" });
+      });
   };
 
   return (

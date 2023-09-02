@@ -9,6 +9,7 @@ import SendIcon from "@mui/icons-material/Send";
 import Comment from "./Comment";
 import axios from "axios";
 import { useSelector } from "react-redux";
+import { toast } from "react-toastify";
 
 export default function Post() {
   const [isLikeClicked, setLikeClicked] = useState(false);
@@ -31,7 +32,9 @@ export default function Post() {
       .then((res) => {
         setComment("");
       })
-      .catch(() => {});
+      .catch(() => {
+        toast("Unable to add comment!", { type: "error" });
+      });
   };
 
   const likePost = () => {
@@ -43,7 +46,9 @@ export default function Post() {
       .then((res) => {
         setComment("");
       })
-      .catch(() => {});
+      .catch(() => {
+        toast("Try again!", { type: "error" });
+      });
   };
 
   return (

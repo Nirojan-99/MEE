@@ -1,9 +1,10 @@
 import pycrfsuite
 from indicnlp.tokenize import indic_tokenize
 
+# Extract features for a given word in a sentence
+
 
 def extract_features(sentence, index, sentences):
-    # Extract features for a given word in a sentence
     word = sentence[index]
 
     prev_word = ""

@@ -13,64 +13,61 @@ from Utils.ner import make_prediction
 
 # global variable
 app = Flask(__name__)
-CORS(app)
 api = Api(app)
+CORS(app)
+
+# mongo collections
 users = initDB().MEE.users
 posts = initDB().MEE.posts
-productProfile = initDB().MEE.productProfile
-userProfile = initDB().MEE.userProfile
-imageUploadPath = "./Uploads/"
+product_profile = initDB().MEE.productProfile
+user_profile = initDB().MEE.userProfile
+
+# static file upload folder
+image_upload_path = "./Uploads/"
 
 
 # config
 app.config['SECRET_KEY'] = 'MEE-auth'
 
 
-# user resource
-
-# api.add_resource(User, "/api/users")
-
 # update user
-
-
 @app.route('/api/users', methods=['PUT'])
-def updateUser():
-    userID = authenticate(request, app)
-    if userID is False:
+def update_user():
+    user_iD = authenticate(request, app)
+    if user_iD is False:
         return {"auth": False}, 404
 
     data = request.form.to_dict()
-    query = {"_id": ObjectId(userID)}
-    newValues = {"$set":  data}
-    users.update_one(query, newValues)
+    query = {"_id": ObjectId(user_iD)}
+    new_values = {"$set":  data}
+    users.update_one(query, new_values)
 
     return {"ack": True}, 200
 
-# get one user
+# get one user by id
 
 
 @app.route('/api/users/<id>', methods=['GET'])
-def getUser(id):
-    userID = authenticate(request, app)
-    if userID is False:
+def get_user_by_id(id):
+    user_id = authenticate(request, app)
+    if user_id is False:
         return {"auth": False}, 404
 
-    userData = users.find_one({"_id": ObjectId(id)})
+    user_data = users.find_one({"_id": ObjectId(id)})
 
-    if (userData is None):
+    if (user_data is None):
         return {"ack": False}, 400
 
-    print(userData)
-    userData['_id'] = str(userData['_id'])
+    print(user_data)
+    user_data['_id'] = str(user_data['_id'])
 
-    return {"data": userData}, 200
+    return {"data": user_data}, 200
 
 # register endpoint
 
 
 @app.route('/api/auth/register', methods=['POST'])
-def register():
-    print(request.form.to_dict())
+def register_user():
     res = users.insert_one(request.form.to_dict())
 
     if res.inserted_id:
@@ -102,14 +99,14 @@ def login():
 
 
 @app.route('/api/recommend', methods=['GET'])
-def createRecommendation():
-    userID = authenticate(request, app)
-    if userID is False:
+def create_recommendation():
+    user_id = authenticate(request, app)
+    if user_id is False:
         return {"auth": False}, 404
 
-    res = userProfile.find_one({"_id": ObjectId(userID)})
+    user_preference = user_profile.find_one({"_id": ObjectId(user_id)})
 
-    resData = productProfile.find({})  # TODO
+    recommendation_list = product_profile.find({})  # TODO
 
     data = posts.find({})  # TODO
 
@@ -124,9 +121,9 @@ def createRecommendation():
 
 
 @app.route('/api/posts', methods=['GET'])
-def getLatestPosts():
-    userID = authenticate(request, app)
-    if userID is False:
+def get_latest_posts():
+    user_id = authenticate(request, app)
+    if user_id is False:
         return {"auth": False}, 404
 
     data = posts.find().sort('date', -1).limit(20)
@@ -142,73 +139,76 @@ def getLatestPosts():
 
 
 @app.route('/api/interact', methods=['POST'])
-def interactWithProduct():
-    userID = authenticate(request, app)
-    if userID is False:
+def interact_with_product():
+    user_id = authenticate(request, app)
+    if user_id is False:
         return {"auth": False}, 404
 
     productID = request.form['productID']
 
-    data = productProfile.find_one({"_id": ObjectId(productID)})
+    profile_data = product_profile.find_one({"_id": ObjectId(productID)})
 
-    userProfile.update_one({"_id": ObjectId(userID)}, {
-                           "$push": {}}, {"upsert": True})  # TODO
+    user_profile.update_one({"_id": ObjectId(user_id)}, {
+        "$push": {}}, {"upsert": True})  # TODO
 
     return {"ack": True}, 200
 
 # like the post
 
 
-# @app.route('/api/posts/like', methods=['POST'])
-# def likePost():
-#     userID = authenticate(request, app)
-#     if userID is False:
-#         return {"auth": False}, 404
+@app.route('/api/posts/like', methods=['POST'])
+def likePost():
+    user_id = authenticate(request, app)
+    if user_id is False:
+        return {"auth": False}, 404
 
-#     productID = request.form['productID']
+    product_id = request.form['productID']
 
-#     data = productProfile.find_one({"_id": ObjectId(productID)})
+    product_profile_data = product_profile.find_one(
+        {"_id": ObjectId(product_id)})
 
-#     userProfile.update_one({"_id": ObjectId(userID)}, {
-#                            "$push": {}}, {"upsert": True})  # TODO
+    user_profile.update_one({"_id": ObjectId(user_id)}, {
+        "$push": {}}, {"upsert": True})  # TODO
 
-#     return {"ack": True}, 200
+    posts.update_one({"_id": ObjectId(user_id)}, {"$push": {"likes": user_id}})
+
+    return {"ack": True}, 200
 
 # search product
 
 
 @app.route('/api/search', methods=['POST'])
-def searchProduct():
-    userID = authenticate(request, app)
-    if userID is False:
+def search_product():
+    user_id = authenticate(request, app)
+    if user_id is False:
         return {"auth": False}, 404
 
     query = request.form['query']
 
-    extractedKeyWords = []  # nirojan model
+    extractedKeyWords = make_prediction(query)
 
-    res = productProfile.find_one()  # TODO
-    res = posts.find_one()  # TODO
+    product_profile_data = product_profile.find_one()  # TODO
+    post_data = posts.find_one()  # TODO
 
-    userProfile.update_one({"_id": ObjectId(userID)}, {
-                           "$push": {}}, {"upsert": True})  # TODO
+    user_profile.update_one({"_id": ObjectId(user_id)}, {
+        "$push": {}}, {"upsert": True})  # TODO
 
-    return {"date": res}, 200
+    return {"date": post_data}, 200
 
 
 # next word prediction
 
 
 @app.route('/api/word-prediction', methods=['POST'])
-def predictNextWord():
-    arrayOfWords = request.form['previousWords'].strip().split(" ")
+def predict_next_word():
+    array_of_words = request.form['previousWords'].strip().split(" ")
 
-    if arrayOfWords is None:
+    if array_of_words is None:
         return 404
 
-    if len(arrayOfWords) == 2:
-        next_word_one = predict_one([arrayOfWords[-1]])
-        next_word_two = predict_two(arrayOfWords)
+    if len(array_of_words) == 2:
+        next_word_one = predict_one([array_of_words[-1]])
+        next_word_two = predict_two(array_of_words)
 
         if not isinstance(next_word_one, list):
             next_word_one = list()
@@ -216,7 +216,7 @@ def predictNextWord():
             next_word_two = list()
         res = next_word_one+next_word_two
     else:
-        next_word_one = predict_one([arrayOfWords[-1]])
+        next_word_one = predict_one([array_of_words[-1]])
         res = next_word_one
 
     return {"nextWord": res}, 200
@@ -225,9 +225,9 @@ def predictNextWord():
 
 
 @app.route('/api/sentiment-analysis', methods=['POST'])
-def addComment():
-    userID = authenticate(request, app)
-    if userID is False:
+def add_comment():
+    user_id = authenticate(request, app)
+    if user_id is False:
         return {"auth": False}, 404
 
     comment = request.form['comment']
@@ -243,21 +243,22 @@ def addComment():
 
     data = loaded_tfidf_vectorizer.transform([comment])
 
-    res = loaded_model.predict(data)
-    if (res[0] == 0):
+    sentiment = loaded_model.predict(data)
+    if (sentiment[0] == 0):
         sentiment = "Negative"
     else:
         sentiment = "Positive"
 
-    userName = users.find_one({"_id": ObjectId(userID)})['name']
+    userName = users.find_one({"_id": ObjectId(user_id)})['name']
 
     posts.update_one({"_id": ObjectId(postID)}, {"$push":  {"comments": {
                      "comment": comment, "sentiment": sentiment, "userName": userName, "date": date, "time": time}}})
 
-    res = productProfile.find_one({"_id": ObjectId(postID)})  # TODO
+    product_profile_data = product_profile.find_one(
+        {"_id": ObjectId(postID)})  # TODO
 
-    userProfile.update_one({"_id": ObjectId(userID)}, {
-                           "$push": {}}, {"upsert": True})  # TODO
+    user_profile.update_one({"_id": ObjectId(user_id)}, {
+        "$push": {}}, {"upsert": True})  # TODO
 
     return {"ack": True}, 200
 
@@ -265,9 +266,9 @@ def addComment():
 
 
 @app.route('/api/posts', methods=['POST'])
-def savePost():
-    userID = authenticate(request, app)
-    if userID is False:
+def save_post():
+    user_id = authenticate(request, app)
+    if user_id is False:
         return {"auth": False}, 404
 
     description = request.form.get('description', "")
@@ -275,62 +276,58 @@ def savePost():
     if description.strip() is "":
         return {"ask": False}, 404
 
-    extractedKeyWords = make_prediction(description)
+    extracted_keyWords = make_prediction(description)
 
     today = datetime.now()
     date = today.strftime("%m/%d/%y")
     time = today.strftime("%H:%M:%S")
 
     posts.insert_one({"url": " ", "description": description,
-                     "date": date, "time": time, "userID": userID})
+                     "date": date, "time": time, "userID": user_id})
 
-    productProfile.insert_one({})  # TODO
+    product_profile.insert_one({})  # TODO
 
-    return {"data": extractedKeyWords}, 200
+    return {"ack": True}, 200
 
 # save post by image
 
 
 @app.route('/api/posts/image', methods=['POST'])
-def trackImage():
-    userID = authenticate(request, app)
-    if userID is False:
+def track_image():
+    user_id = authenticate(request, app)
+    if user_id is False:
         return {"auth": False}, 404
 
     image = request.files['image']
     description = request.form.get('description', "")
 
-    image.save(imageUploadPath+image.filename)
+    image.save(image_upload_path+image.filename)
 
-    detectedSentence = ""  # hithushi model
+    detected_sentence = ""  # hithushi model
 
     if description.strip() is "":
         return {"ask": False}, 404
 
-    extractedKeyWords = make_prediction(description)
+    extracted_keyWords_from_description = make_prediction(description)
+    extracted_keyWords_from_image = make_prediction(detected_sentence)
 
     today = datetime.now()
     date = today.strftime("%m/%d/%y")
     time = today.strftime("%H:%M:%S")
 
     posts.insert_one({"url": "api/images/"+image.filename,
-                     "description": description, "date": date, "time": time, "userID": userID})
+                     "description": description, "date": date, "time": time, "userID": user_id})
 
-    productProfile.insert_one({})  # TODO
+    product_profile.insert_one({})  # TODO
 
     return {"ack": True}, 200
-
-
-@app.route('/api/posts', methods=['POST'])
-def newPost():
-    pass
 
 # serve image statically
 
 
 @app.route('/api/images/<image_name>', methods=['GET'])
 def serve_image(image_name):
-    return send_from_directory(imageUploadPath, image_name)
+    return send_from_directory(image_upload_path, image_name)
 
 
 if __name__ == "__main__":

@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from "react-redux";
 import axios from "axios";
 import { login } from "../Store/auth";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 export default function Login(props) {
   const [email, setEmail] = useState("");
@@ -37,7 +38,9 @@ export default function Login(props) {
         dispatch(login({ userID: res.data.userID, token: res.data.token }));
         navigate("/");
       })
-      .catch(() => {});
+      .catch(() => {
+        toast("Invalid login", { type: "error" });
+      });
   };
 
   return (
