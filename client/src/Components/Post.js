@@ -1,5 +1,5 @@
 import { Avatar, IconButton, TextareaAutosize } from "@mui/material";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import PostMenu from "./PostMenu";
 import ImageStack from "./ImageStack";
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
@@ -11,13 +11,19 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 
-export default function Post() {
+export default function Post(props) {
   const [isLikeClicked, setLikeClicked] = useState(false);
   const [commentCount, setCommentCount] = useState(2);
-  const [comments, setComments] = useState([1, 2, 3, 4]);
   const [comment, setComment] = useState("");
   //url
-  const { BASE_URL, token } = useSelector((state) => state.auth);
+  const { BASE_URL, token, userID } = useSelector((state) => state.auth);
+
+  const { description, date, url, _id, likes, comments: com } = props.data;
+  const [comments, setComments] = useState(com);
+
+  useEffect(() => {
+    setLikeClicked(likes?.includes(userID));
+  }, []);
 
   const addComment = () => {
     if (!comment.trim()) {
@@ -26,10 +32,21 @@ export default function Post() {
 
     const data = new FormData();
     data.append("comment", comment);
+    data.append("postID", _id);
 
     axios
-      .post(`${BASE_URL}auth/login`, data, { headers: { token: token } })
+      .post(`${BASE_URL}sentiment-analysis`, data, {
+        headers: { token: token },
+      })
       .then((res) => {
+        const userName = res.data.userName;
+        setComments((pre) => {
+          if (pre) {
+            return pre.append({ comment, userName });
+          } else {
+            return [{ comment, userName }];
+          }
+        });
         setComment("");
       })
       .catch(() => {
@@ -37,15 +54,14 @@ export default function Post() {
       });
   };
 
-  const likePost = () => {
+  const likePost = (val) => {
     const data = new FormData();
-    data.append("comment", comment);
+    data.append("productID", _id);
+    data.append("action", !isLikeClicked ? "1" : "0");
 
     axios
-      .post(`${BASE_URL}auth/login`, data, { headers: { token: token } })
-      .then((res) => {
-        setComment("");
-      })
+      .post(`${BASE_URL}posts/like`, data, { headers: { token: token } })
+      .then((res) => {})
       .catch(() => {
         toast("Try again!", { type: "error" });
       });
@@ -60,9 +76,7 @@ export default function Post() {
         </Avatar>
         <div className="flex flex-col items-start justify-center ml-2">
           <div className="font-bold text-[14px] ">User Name</div>
-          <div className="text-[10px] text-[#299FB5] font-semibold">
-            1 min ago
-          </div>
+          <div className="text-[10px] text-[#299FB5] font-semibold">{date}</div>
         </div>
         <div className="flex-1" />
         <div>
@@ -71,38 +85,31 @@ export default function Post() {
       </div>
       {/*  */}
       <div className="text-[13px] font-semibold my-2 text-justify">
-        Tomorrow will bring something new, so leave today as a memory. I'm
-        confused: when people ask me what's up, and I point, they groan. We have
-        never been to Asia, nor have we visited Africa. Just go ahead and press
-        that button. The father died during childbirth. The ants enjoyed the
-        barbecue more than the family. Your girlfriend bought your favorite
-        cookie crisp cereal but forgot to get milk. Harrold felt confident that
-        nobody would ever suspect his spy pigeon. If you really strain your
-        ears, you can just about hear the sound of no one giving a damn. The
-        changing of down comforters to cotton bedspreads always meant the
-        squirrels had returned. I love eating toasted cheese and tuna
-        sandwiches. He knew it was going to be a bad day when he saw mountain
-        lions roaming the streets. The old apple revels in its authority. Today
-        I dressed my unicorn in preparation for the race. Behind the window was
-        a reflection that only instilled fear. She had some amazing news to
-        share but nobody to share it with. When he had to picnic on the beach,
-        he purposely put sand in other people’s food. Excitement replaced fear
-        until the final moment. It isn't difficult to do a handstand if you just
-        stand on your hands. For the 216th time, he said he would quit drinking
-        soda after this last Coke. The stench from the feedlot permeated the car
-        despite having the air conditioning on recycled air. The llama couldn't
-        resist trying the lemonade.
+        {description}
       </div>
       <div className="mt-2" />
-      <ImageStack />
+      <ImageStack data={url} />
+      {url.trim() || (
+        <hr className="border-[#c1e9f0] border-b w-full flex-1 mt-1" />
+      )}
       {/*  */}
       <div className="mt-2 flex flex-1 flex-row items-start space-x-2">
         {isLikeClicked ? (
-          <IconButton onClick={() => setLikeClicked(false)}>
+          <IconButton
+            onClick={() => {
+              setLikeClicked(false);
+              likePost(false);
+            }}
+          >
             <FavoriteIcon sx={{ color: "red" }} />
           </IconButton>
         ) : (
-          <IconButton onClick={() => setLikeClicked(true)}>
+          <IconButton
+            onClick={() => {
+              likePost(true);
+              setLikeClicked(true);
+            }}
+          >
             <FavoriteBorderOutlinedIcon />
           </IconButton>
         )}
@@ -113,12 +120,12 @@ export default function Post() {
       {/*  */}
       <div>
         <div>
-          {comments.map((item, index) => {
+          {comments?.map((item, index) => {
             if (index < commentCount) {
-              return <Comment />;
+              return <Comment data={item} />;
             }
           })}
-          {commentCount <= comments.length && (
+          {commentCount <= comments?.length && (
             <div
               onClick={() => {
                 setCommentCount((pre) => {

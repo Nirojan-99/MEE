@@ -11,6 +11,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import Loading from "./Loading";
 
 export default function Timeline() {
   //hook
@@ -21,6 +22,7 @@ export default function Timeline() {
   const [image, setImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
   const [open, setOpen] = useState(false);
+  const [isLoaded, setLoaded] = useState(false);
   //url
   const { BASE_URL, token } = useSelector((state) => state.auth);
 
@@ -50,24 +52,26 @@ export default function Timeline() {
 
     if (image) {
       axios
-        .post(`${BASE_URL}api/posts/image`, data, {
+        .post(`${BASE_URL}posts/image`, data, {
           headers: { token: token },
         })
         .then((res) => {
-          //TODO
+          setDescription("");
+          setImage("");
         })
         .catch(() => {
           toast("Unable to post!", { type: "error" });
         });
     } else {
       axios
-        .post(`${BASE_URL}api/posts`, data, {
+        .post(`${BASE_URL}posts`, data, {
           headers: { token: token },
         })
         .then((res) => {
-          //TODO
+          setDescription("");
         })
-        .catch(() => {
+        .catch((er) => {
+          console.log(er);
           toast("Unable to post!", { type: "error" });
         });
     }
@@ -80,9 +84,9 @@ export default function Timeline() {
       })
       .then((res) => {
         setPosts(res.data.data);
+        setLoaded(true);
       })
       .catch((er) => {
-        console.log(er);
       });
   }, []);
 
@@ -113,6 +117,7 @@ export default function Timeline() {
         <div className="bg-[#eaf8fa] rounded-xl mt-5">
           <div className="p-2 border-b border-[#97dbe7] overflow-visible">
             <TextareaAutosize
+              value={description}
               onChange={(event) => {
                 predictNextWord();
                 setDescription(event.target.value);
@@ -216,12 +221,16 @@ export default function Timeline() {
           </div>
         </div>
         {/*  */}
-        <div className="mt-5" />
+        <div className="my-5" />
         {posts.length != 0 &&
           posts.map((item, index) => {
             return <Post key={index} data={item} />;
           })}
-        <Post />
+        {!isLoaded && (
+          <div className="flex-1 h-[500px] flex flex-row items-center justify-center ">
+            <Loading />
+          </div>
+        )}
       </div>
     </>
   );

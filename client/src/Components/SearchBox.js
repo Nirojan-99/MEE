@@ -30,7 +30,7 @@ export default function SearchBox() {
     const data = new FormData();
     data.append("query", query);
     axios
-      .get(`${BASE_URL}search`, data, {
+      .post(`${BASE_URL}search`, data, {
         headers: { token: token },
       })
       .then((res) => {
@@ -47,7 +47,7 @@ export default function SearchBox() {
         <input
           value={query}
           onChange={(event) => {
-            search();
+            // search();
             setQuery(event.target.value);
           }}
           className="flex-1 bg-transparent border-0 outline-0 px-2 font-semibold text-[14px]"
@@ -55,7 +55,7 @@ export default function SearchBox() {
         <IconButton
           onClick={() => {
             search();
-            setQuery("");
+            // setQuery("");
           }}
           sx={{ bgcolor: "#299FB5" }}
         >

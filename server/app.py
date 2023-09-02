@@ -157,20 +157,26 @@ def interact_with_product():
 
 
 @app.route('/api/posts/like', methods=['POST'])
-def likePost():
+def like_post():
     user_id = authenticate(request, app)
     if user_id is False:
         return {"auth": False}, 404
 
     product_id = request.form['productID']
+    action = request.form['action']
 
-    product_profile_data = product_profile.find_one(
-        {"_id": ObjectId(product_id)})
+    if action == "1":
+        posts.update_one({"_id": ObjectId(product_id)}, {
+            "$push": {"likes": user_id}})
 
-    user_profile.update_one({"_id": ObjectId(user_id)}, {
-        "$push": {}}, {"upsert": True})  # TODO
+        product_profile_data = product_profile.find_one(
+            {"productID": str(product_id)})
 
-    posts.update_one({"_id": ObjectId(user_id)}, {"$push": {"likes": user_id}})
+        user_profile.update_one({"userID": str(user_id)}, {
+            "$addToSet": {"preference": product_profile_data['entities']}}, True)
+    else:
+        res = posts.update_one({"_id": ObjectId(product_id)}, {
+            "$pull": {"likes": user_id}})
 
     return {"ack": True}, 200
 
@@ -185,15 +191,33 @@ def search_product():
 
     query = request.form['query']
 
-    extractedKeyWords = make_prediction(query)
+    extracted_keyWords = make_prediction(query)
 
-    product_profile_data = product_profile.find_one()  # TODO
-    post_data = posts.find_one()  # TODO
+    prod_data = []
+    for key, value in extracted_keyWords:
+        # if value == "B-PROD" or value == "I-PROD":
+        prod_data.append(key)
 
-    user_profile.update_one({"_id": ObjectId(user_id)}, {
-        "$push": {}}, {"upsert": True})  # TODO
+    product_profile_data = product_profile.find_one({
+        '$or': [
+            {"entities.B-PROD": {'$in': prod_data}},
+            {"entities.I-PROD": {'$in': prod_data}}
+        ]
+    })
 
-    return {"date": post_data}, 200
+    print(product_profile_data) #TODO aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+
+    if product_profile_data is not None:
+        post_data = product_profile.find(
+            {"_id": ObjectId(product_profile_data['productID'])})
+
+        user_profile.update_one({"_id": ObjectId(user_id)}, {
+            "$addToSet": {"preference": product_profile_data['entities']}}, True)
+
+        return {"date": post_data}, 200
+
+    else:
+        return {"data": False}, 404
 
 
 # next word prediction
@@ -249,18 +273,19 @@ def add_comment():
     else:
         sentiment = "Positive"
 
-    userName = users.find_one({"_id": ObjectId(user_id)})['name']
+    user = users.find_one({"_id": ObjectId(user_id)})
+    user_name = user['userName']
 
     posts.update_one({"_id": ObjectId(postID)}, {"$push":  {"comments": {
-                     "comment": comment, "sentiment": sentiment, "userName": userName, "date": date, "time": time}}})
+                     "comment": comment, "sentiment": sentiment, "userName": user_name, "date": date, "time": time}}})
 
     product_profile_data = product_profile.find_one(
-        {"_id": ObjectId(postID)})  # TODO
+        {"productID": str(postID)})
 
-    user_profile.update_one({"_id": ObjectId(user_id)}, {
-        "$push": {}}, {"upsert": True})  # TODO
+    user_profile.update_one({"userID": str(user_id)}, {
+        "$addToSet": {"preference": product_profile_data['entities']}},  True)
 
-    return {"ack": True}, 200
+    return {"ack": True, "userName": user_name}, 200
 
 # save post
 
@@ -273,19 +298,27 @@ def save_post():
 
     description = request.form.get('description', "")
 
-    if description.strip() is "":
+    if description.strip() == "":
         return {"ask": False}, 404
 
     extracted_keyWords = make_prediction(description)
+
+    grouped_data = {}
+    for key, value in extracted_keyWords:
+        if value in grouped_data:
+            grouped_data[value].append(key)
+        else:
+            grouped_data[value] = [key]
 
     today = datetime.now()
     date = today.strftime("%m/%d/%y")
     time = today.strftime("%H:%M:%S")
 
-    posts.insert_one({"url": " ", "description": description,
-                     "date": date, "time": time, "userID": user_id})
+    post_data = posts.insert_one({"url": " ", "description": description,
+                                  "date": date, "time": time, "userID": user_id})
 
-    product_profile.insert_one({})  # TODO
+    product_profile.insert_one(
+        {"productID": str(post_data.inserted_id), 'entities': grouped_data, "index": 0})
 
     return {"ack": True}, 200
 
@@ -305,20 +338,35 @@ def track_image():
 
     detected_sentence = ""  # hithushi model
 
-    if description.strip() is "":
+    if description.strip() == "":
         return {"ask": False}, 404
 
     extracted_keyWords_from_description = make_prediction(description)
-    extracted_keyWords_from_image = make_prediction(detected_sentence)
+    extracted_keyWords_from_image = []  # TODO
+
+    grouped_data = {}
+    for key, value in extracted_keyWords_from_description:
+        if value in grouped_data:
+            grouped_data[value].append(key)
+        else:
+            grouped_data[value] = [key]
+
+    grouped_data = {}
+    for key, value in extracted_keyWords_from_image:
+        if value in grouped_data:
+            grouped_data[value].append(key)
+        else:
+            grouped_data[value] = [key]
 
     today = datetime.now()
     date = today.strftime("%m/%d/%y")
     time = today.strftime("%H:%M:%S")
 
-    posts.insert_one({"url": "api/images/"+image.filename,
-                     "description": description, "date": date, "time": time, "userID": user_id})
+    post_data = posts.insert_one({"url": "api/images/"+image.filename,
+                                 "description": description, "date": date, "time": time, "userID": user_id})
 
-    product_profile.insert_one({})  # TODO
+    product_profile.insert_one(
+        {"productID": str(post_data.inserted_id), 'entities': grouped_data, "index": 0})
 
     return {"ack": True}, 200
 
