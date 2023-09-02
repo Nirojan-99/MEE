@@ -38,12 +38,12 @@ export default function Post() {
     const data = new FormData();
     data.append("comment", comment);
 
-    axios.post(`${BASE_URL}auth/login`, data),
-      { headers: { token: token } }
-        .then((res) => {
-          setComment("");
-        })
-        .catch(() => {});
+    axios
+      .post(`${BASE_URL}auth/login`, data, { headers: { token: token } })
+      .then((res) => {
+        setComment("");
+      })
+      .catch(() => {});
   };
 
   return (
