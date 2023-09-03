@@ -10,6 +10,7 @@ from Utils.auth import authenticate
 import joblib
 from Utils.predict import predict_two, predict_one
 from Utils.ner import make_prediction
+import string
 
 # global variable
 app = Flask(__name__)
@@ -58,7 +59,6 @@ def get_user_by_id(id):
     if (user_data is None):
         return {"ack": False}, 400
 
-    print(user_data)
     user_data['_id'] = str(user_data['_id'])
 
     return {"data": user_data}, 200
@@ -104,18 +104,44 @@ def create_recommendation():
     if user_id is False:
         return {"auth": False}, 404
 
-    user_preference = user_profile.find_one({"_id": ObjectId(user_id)})
+    user_preference = user_profile.find_one({"userID": str(user_id)}, {
+                                            "preference": {"$slice": -5}})
 
-    recommendation_list = product_profile.find({})  # TODO
+    prod = []
+    for preference in user_preference['preference']:
+        for key, value in preference.items():
+            if key == "B-PROD" or key == "I-PROD":
+                prod.append(value)
 
-    data = posts.find({})  # TODO
+    product_profile_data = product_profile.find({
+        '$or': [
+            {"entities.B-PROD": {'$in': prod}},
+            {"entities.I-PROD": {'$in': prod}}
+        ]
+    })
 
-    data_list = []
-    for document in data:
-        document['_id'] = str(document['_id'])
-        data_list.append(document)
+    if product_profile_data is not None:
+        post_data = []
+        preference = []
+        data_list = []
 
-    return {"data": data_list}  # TODO
+        for doc in product_profile_data:
+            preference.append(doc['entities'])
+
+            data = posts.find(
+                {"_id": ObjectId(doc['productID'])})
+
+            for document in data:
+                document['_id'] = str(document['_id'])
+                post_data.append(document)
+
+        for document in post_data:
+            document['_id'] = str(document['_id'])
+            data_list.append(document)
+
+        return {"data": data_list}, 200
+    else:
+        return {"data": False}, 404
 
 # get latest posts
 
@@ -135,6 +161,20 @@ def get_latest_posts():
 
     return {"data": data_list}, 200
 
+# get sing post by id
+
+
+@app.route('/api/posts/<id>', methods=['GET'])
+def get_posts_by_id(id):
+    user_id = authenticate(request, app)
+    if user_id is False:
+        return {"auth": False}, 404
+
+    data = posts.find_one({"_id": ObjectId(id)})
+    data['_id'] = str(data['_id'])
+
+    return {"data": data}, 200
+
 # interact with product/click
 
 
@@ -146,10 +186,10 @@ def interact_with_product():
 
     productID = request.form['productID']
 
-    profile_data = product_profile.find_one({"_id": ObjectId(productID)})
+    profile_data = product_profile.find_one({"productID": str(productID)})
 
-    user_profile.update_one({"_id": ObjectId(user_id)}, {
-        "$push": {}}, {"upsert": True})  # TODO
+    user_profile.update_one({"userID": str(user_id)}, {
+        "$addToSet": {"preference": profile_data['entities']}},  True) 
 
     return {"ack": True}, 200
 
@@ -194,27 +234,39 @@ def search_product():
     extracted_keyWords = make_prediction(query)
 
     prod_data = []
-    for key, value in extracted_keyWords:
-        # if value == "B-PROD" or value == "I-PROD":
+    for key, value in extracted_keyWords:  # TODO
         prod_data.append(key)
 
-    product_profile_data = product_profile.find_one({
+    product_profile_data = product_profile.find({
         '$or': [
             {"entities.B-PROD": {'$in': prod_data}},
             {"entities.I-PROD": {'$in': prod_data}}
         ]
     })
 
-    print(product_profile_data) #TODO aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
-
     if product_profile_data is not None:
-        post_data = product_profile.find(
-            {"_id": ObjectId(product_profile_data['productID'])})
+        post_data = []
+        preference = []
+        data_list = []
 
-        user_profile.update_one({"_id": ObjectId(user_id)}, {
-            "$addToSet": {"preference": product_profile_data['entities']}}, True)
+        for doc in product_profile_data:
+            preference.append(doc['entities'])
 
-        return {"date": post_data}, 200
+            data = posts.find(
+                {"_id": ObjectId(doc['productID'])})
+
+            for document in data:
+                document['_id'] = str(document['_id'])
+                post_data.append(document)
+
+        for document in post_data:
+            document['_id'] = str(document['_id'])
+            data_list.append(document)
+
+        user_profile.update_one({"userID": str(user_id)}, {
+            "$addToSet": {"preference": {"$each": preference}}}, True)
+
+        return {"data": data_list}, 200
 
     else:
         return {"data": False}, 404
@@ -243,7 +295,15 @@ def predict_next_word():
         next_word_one = predict_one([array_of_words[-1]])
         res = next_word_one
 
-    return {"nextWord": res}, 200
+    # Remove None values and duplicates
+    filtered_list = [item for item in res if item is not None]
+    filtered_list = list(dict.fromkeys(filtered_list))
+
+    # Remove words containing only punctuation and numbers
+    filtered_list = [item for item in filtered_list if not all(
+        char in string.punctuation or char.isdigit() for char in item)]
+
+    return {"nextWord": filtered_list}, 200
 
 # add comment
 

@@ -5,11 +5,13 @@ import Recommendation from "./Recommendation";
 import { useSelector } from "react-redux";
 import axios from "axios";
 import { toast } from "react-toastify";
+import Loading from "./Loading";
 
 export default function SearchBox() {
   const [recommendation, setRecommendation] = useState([]);
   const [query, setQuery] = useState("");
-  const [searchResult, setSearchResult] = useState([]);
+  const [searchResult, setSearchResult] = useState();
+  const [isLoaded, setLoaded] = useState(false);
   //url
   const { BASE_URL, token } = useSelector((state) => state.auth);
 
@@ -19,10 +21,12 @@ export default function SearchBox() {
         headers: { token: token },
       })
       .then((res) => {
+        setLoaded(true);
         setRecommendation(res.data.data);
       })
       .catch((er) => {
-        toast("No results found!", { type: "error" });
+        setLoaded(true);
+        toast("No recommendations found!", { type: "error" });
       });
   }, []);
 
@@ -35,6 +39,7 @@ export default function SearchBox() {
       })
       .then((res) => {
         setSearchResult(res.data.data);
+        setQuery("");
       })
       .catch((er) => {
         console.log(er);
@@ -47,7 +52,6 @@ export default function SearchBox() {
         <input
           value={query}
           onChange={(event) => {
-            // search();
             setQuery(event.target.value);
           }}
           className="flex-1 bg-transparent border-0 outline-0 px-2 font-semibold text-[14px]"
@@ -55,14 +59,13 @@ export default function SearchBox() {
         <IconButton
           onClick={() => {
             search();
-            // setQuery("");
           }}
           sx={{ bgcolor: "#299FB5" }}
         >
           <SearchIcon sx={{ color: "#fff", "&:hover": { color: "#333" } }} />
         </IconButton>
       </div>
-      {query && (
+      {searchResult && (
         <>
           <div className="text-2xl font-bold text-[#333] my-5 font-['roboto']">
             Search result
@@ -83,6 +86,11 @@ export default function SearchBox() {
           recommendation.map((item, index) => {
             return <Recommendation key={index} data={item} />;
           })}
+        {!isLoaded && (
+          <div className="flex-1 flex-row flex items-center justify-center w-full ">
+            <Loading />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,13 +1,51 @@
 import { Avatar, IconButton } from "@mui/material";
-import React, { useState } from "react";
+import axios from "axios";
+import React, { useEffect, useState } from "react";
+import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
-export default function Recommendation() {
+export default function Recommendation(props) {
   const navigate = useNavigate();
+  const [userName, setUserName] = useState("");
+
+  //url
+  const { BASE_URL, token } = useSelector((state) => state.auth);
 
   const navigation = () => {
-    navigate("./post/131");
+    navigate("./post/" + _id);
   };
+
+  function extractFirst100Words(inputString) {
+    const words = inputString.split(/\s+/);
+
+    const first100Words = words.slice(0, 30);
+
+    const resultString = first100Words.join(" ");
+
+    return resultString;
+  }
+
+  const {
+    description,
+    date,
+    url,
+    _id,
+    likes,
+    comments: com,
+    userID,
+  } = props?.data;
+
+  useEffect(() => {
+    axios
+      .get(`${BASE_URL}users/${userID}`, { headers: { token: token } })
+      .then((res) => {
+        setUserName(res.data.data.userName);
+      })
+      .catch(() => {
+        toast("Unable to fetch data!", { type: "error" });
+      });
+  }, []);
 
   return (
     <div
@@ -17,29 +55,20 @@ export default function Recommendation() {
       {/*  */}
       <div className="flex flex-row items-center">
         <Avatar sx={{ bgcolor: "#299FB5", width: 45, height: 45 }} src="">
-          N
+          {userName.split("")[0]}
         </Avatar>
         <div className="flex flex-col items-start justify-center ml-2">
-          <div className="font-bold text-[14px] ">User Name</div>
-          <div className="text-[10px] text-[#299FB5] font-semibold">
-            1 min ago
-          </div>
+          <div className="font-bold text-[14px] ">{userName}</div>
+          <div className="text-[10px] text-[#299FB5] font-semibold">{date}</div>
         </div>
         <div className="flex-1" />
-        {/* <div>
-          <PostMenu />
-        </div> */}
       </div>
       {/*  */}
       <div className="text-[12px] font-semibold my-2 text-justify">
-        Tomorrow will bring something new, so leave today as a memory. I'm
-        confused: when people ask me what's up, and I point, they groan.
+        {extractFirst100Words(description) + "....."}
       </div>
       <div className="mt-2" />
-      <img
-        className=" w-full "
-        src="https://img.freepik.com/free-photo/chicken-wings-barbecue-sweetly-sour-sauce-picnic-summer-menu-tasty-food-top-view-flat-lay_2829-6471.jpg?w=2000"
-      />
+      <img className=" w-full " src={url} />
     </div>
   );
 }

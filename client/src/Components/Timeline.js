@@ -23,6 +23,7 @@ export default function Timeline() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [open, setOpen] = useState(false);
   const [isLoaded, setLoaded] = useState(false);
+  const [maxHeight, setMaxHeight] = useState("0px");
   //url
   const { BASE_URL, token } = useSelector((state) => state.auth);
 
@@ -86,27 +87,51 @@ export default function Timeline() {
         setPosts(res.data.data);
         setLoaded(true);
       })
-      .catch((er) => {
-      });
+      .catch((er) => {});
   }, []);
 
-  const predictNextWord = () => {
-    const data = { previousWords: description?.split(" ")?.slice(-3) };
+  const predictNextWord = (description) => {
+    setMaxHeight(0);
+    const data = new FormData();
+
+    data.append(
+      "previousWords",
+      description?.trim().split(" ")?.slice(-2).join(" ")
+    );
+
+    if (!description.trim()) {
+      return setNextWord([]);
+    }
 
     axios
-      .post(`${BASE_URL}api/word-prediction`, data, {
+      .post(`${BASE_URL}word-prediction`, data, {
         headers: { token: token },
       })
       .then((res) => {
-        setNextWord(res.data.nextWord);
+        if (res) {
+          setMaxHeight("1000px");
+          setNextWord(res.data.nextWord);
+        }
       })
-      .catch(() => {});
+      .catch(() => {
+        setMaxHeight("0px");
+      });
   };
 
   const handleClose = (file, url) => {
     setOpen(false);
     setImage(file);
     setPreviewUrl(url);
+  };
+
+  const addNextWord = (val) => {
+    setDescription((pre) => {
+      let data = pre.trim();
+      data += " " + val;
+      predictNextWord(data);
+      return data;
+    });
+    setNextWord("");
   };
 
   return (
@@ -119,7 +144,7 @@ export default function Timeline() {
             <TextareaAutosize
               value={description}
               onChange={(event) => {
-                predictNextWord();
+                predictNextWord(event.target.value);
                 setDescription(event.target.value);
               }}
               className="text-[14px] font-semibold"
@@ -132,8 +157,49 @@ export default function Timeline() {
               minRows={3}
               placeholder="compose new post"
             />
+            {/* next word */}
+            {nextWord?.length != 0 && (
+              <div
+                className={` flex flex-1 flex-row items-center max-h-[${maxHeight}]  transition-all`}
+              >
+                <div>
+                  <IconButton
+                    onClick={() => {
+                      sideScroll("right", 25, nextWord.length, 8);
+                    }}
+                  >
+                    <ArrowLeftIcon sx={{ color: "#299FB5" }} />
+                  </IconButton>
+                </div>
+                <div
+                  ref={some}
+                  className="flex-1 overflow-hidden flex flex-row space-x-2"
+                >
+                  {nextWord?.map((item, index) => {
+                    return (
+                      <Suggestion
+                        onClick={() => {
+                          addNextWord(item);
+                        }}
+                        key={index}
+                        data={item}
+                      />
+                    );
+                  })}
+                </div>
+                <div>
+                  <IconButton
+                    onClick={() => {
+                      sideScroll("left", 25, nextWord.length, 8);
+                    }}
+                  >
+                    <ArrowRightIcon sx={{ color: "#299FB5" }} />
+                  </IconButton>
+                </div>
+              </div>
+            )}
             {/* img */}
-            <div className="my-2 ">
+            <div className={`${previewUrl && "my-2"}  `}>
               <div className=" relative">
                 {previewUrl && <img src={previewUrl} className=" " />}
                 {previewUrl && (
@@ -159,37 +225,6 @@ export default function Timeline() {
                 )}
               </div>
             </div>
-            {/* next word */}
-            {nextWord?.length != 0 && (
-              <div className=" flex flex-1 flex-row items-center  ">
-                <div>
-                  <IconButton
-                    onClick={() => {
-                      sideScroll("right", 25, nextWord.length, 8);
-                    }}
-                  >
-                    <ArrowLeftIcon sx={{ color: "#299FB5" }} />
-                  </IconButton>
-                </div>
-                <div
-                  ref={some}
-                  className="flex-1 overflow-hidden flex flex-row space-x-2"
-                >
-                  {nextWord.map((item, index) => {
-                    return <Suggestion key={index} data={item} />;
-                  })}
-                </div>
-                <div>
-                  <IconButton
-                    onClick={() => {
-                      sideScroll("left", 25, nextWord.length, 8);
-                    }}
-                  >
-                    <ArrowRightIcon sx={{ color: "#299FB5" }} />
-                  </IconButton>
-                </div>
-              </div>
-            )}
           </div>
           <div className="py-2 px-5 flex flex-row space-x-3 items-center">
             <div className="flex flex-row space-x-2 items-center cursor-pointer bg-[#c1eaf1] px-2 py-1 rounded-full">

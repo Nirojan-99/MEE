@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import logo from "../Assets/logo.png";
 import { Avatar } from "@mui/material";
 import HomeOutlinedIcon from "@mui/icons-material/HomeOutlined";
@@ -13,9 +13,10 @@ import EmailOutlinedIcon from "@mui/icons-material/EmailOutlined";
 import NotListedLocationOutlinedIcon from "@mui/icons-material/NotListedLocationOutlined";
 import BookmarkBorderOutlinedIcon from "@mui/icons-material/BookmarkBorderOutlined";
 import LogoutIcon from "@mui/icons-material/Logout";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { logout } from "../Store/auth";
+import axios from "axios";
 
 export default function NavBar() {
   const dispatch = useDispatch();
@@ -26,6 +27,21 @@ export default function NavBar() {
     navigate("/auth/login");
   };
 
+  const [username, setUserName] = useState("");
+  //url
+  const { BASE_URL, token, userID } = useSelector((state) => state.auth);
+
+  useEffect(() => {
+    axios
+      .get(`${BASE_URL}users/${userID}`, { headers: { token: token } })
+      .then((res) => {
+        setUserName(res.data.data.userName);
+      })
+      .catch(() => {
+        // toast("Unable to fetch data!", { type: "error" });
+      });
+  }, []);
+
   return (
     <div className=" h-full p-6 shadow-sm shadow-[#ddd] flex flex-col flex-1 ">
       <div className="flex flex-row items-start ">
@@ -34,10 +50,10 @@ export default function NavBar() {
       {/*  */}
       <div className="my-9 flex flex-row space-x-4 items-center p-2 w-full rounded-full bg-[#d5f1f6]">
         <Avatar sx={{ bgcolor: "#299FB5", width: 28, height: 28 }} src="">
-          B
+          {username.split("")[0]}
         </Avatar>
         <div className="font-sans font-bold text-[15px] text-[#1e8494]">
-          User Name
+          {username}
         </div>
       </div>
       {/*  */}

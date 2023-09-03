@@ -18,11 +18,28 @@ export default function Post(props) {
   //url
   const { BASE_URL, token, userID } = useSelector((state) => state.auth);
 
-  const { description, date, url, _id, likes, comments: com } = props.data;
+  const {
+    description,
+    date,
+    url,
+    _id,
+    likes,
+    comments: com,
+    userID: creatorID,
+  } = props.data;
   const [comments, setComments] = useState(com);
+  const [userName, setUserName] = useState("");
 
   useEffect(() => {
     setLikeClicked(likes?.includes(userID));
+    axios
+      .get(`${BASE_URL}users/${creatorID}`, { headers: { token: token } })
+      .then((res) => {
+        setUserName(res.data.data.userName);
+      })
+      .catch(() => {
+        toast("Unable to fetch data!", { type: "error" });
+      });
   }, []);
 
   const addComment = () => {
@@ -42,7 +59,9 @@ export default function Post(props) {
         const userName = res.data.userName;
         setComments((pre) => {
           if (pre) {
-            return pre.append({ comment, userName });
+            let array = [...pre];
+            array.push({ comment, userName });
+            return array;
           } else {
             return [{ comment, userName }];
           }
@@ -72,10 +91,10 @@ export default function Post(props) {
       {/*  */}
       <div className="flex flex-row items-center">
         <Avatar sx={{ bgcolor: "#299FB5", width: 45, height: 45 }} src="">
-          N
+          {userName.split("")[0]}
         </Avatar>
         <div className="flex flex-col items-start justify-center ml-2">
-          <div className="font-bold text-[14px] ">User Name</div>
+          <div className="font-bold text-[14px] ">{userName}</div>
           <div className="text-[10px] text-[#299FB5] font-semibold">{date}</div>
         </div>
         <div className="flex-1" />
