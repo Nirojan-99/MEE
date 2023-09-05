@@ -131,10 +131,11 @@ export default function Post() {
                 </div>
                 {/*  */}
                 <div className="text-[13px] font-semibold my-2 text-justify">
-                  {postData?.description}
+
+                  {postData?.description != "undefined" && postData?.description}
                 </div>
                 <div className="mt-2" />
-                <ImageStack />
+                <ImageStack data={postData.url} />
                 {/*  */}
                 <div className="mt-2 flex flex-1 flex-row items-start space-x-2">
                   {isLikeClicked ? (

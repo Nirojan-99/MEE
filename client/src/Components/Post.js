@@ -104,11 +104,11 @@ export default function Post(props) {
       </div>
       {/*  */}
       <div className="text-[13px] font-semibold my-2 text-justify">
-        {description}
+        {description != "undefined" && description}
       </div>
       <div className="mt-2" />
-      <ImageStack data={url} />
-      {url.trim() || (
+      <ImageStack data={ url} />
+      {url.trim() !== null && (
         <hr className="border-[#c1e9f0] border-b w-full flex-1 mt-1" />
       )}
       {/*  */}

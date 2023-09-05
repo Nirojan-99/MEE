@@ -1,5 +1,9 @@
 import React from "react";
 
 export default function ImageStack(props) {
-  return <img src={props.data} />;
+  return (
+    <>
+      {props.data.trim() && <img src={"http://localhost:5000/" + props.data} />}
+    </>
+  );
 }

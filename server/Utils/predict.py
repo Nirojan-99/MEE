@@ -20,8 +20,6 @@ def predict_next_word_two(prev_words):
     return candidates if candidates else None
 
 # Function to predict the next word given the previous one word
-
-
 def predict_next_word_one(prev_words):
     prev_ngram = tuple(prev_words)
     candidates = []

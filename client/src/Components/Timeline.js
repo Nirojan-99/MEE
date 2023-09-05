@@ -59,6 +59,8 @@ export default function Timeline() {
         .then((res) => {
           setDescription("");
           setImage("");
+          setPreviewUrl("")
+          setNextWord([])
         })
         .catch(() => {
           toast("Unable to post!", { type: "error" });
@@ -91,7 +93,6 @@ export default function Timeline() {
   }, []);
 
   const predictNextWord = (description) => {
-    setMaxHeight(0);
     const data = new FormData();
 
     data.append(
@@ -109,7 +110,6 @@ export default function Timeline() {
       })
       .then((res) => {
         if (res) {
-          setMaxHeight("1000px");
           setNextWord(res.data.nextWord);
         }
       })

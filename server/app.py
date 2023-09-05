@@ -11,6 +11,7 @@ import joblib
 from Utils.predict import predict_two, predict_one
 from Utils.ner import make_prediction
 import string
+from Utils.image import extract_sentences
 
 # global variable
 app = Flask(__name__)
@@ -30,8 +31,20 @@ image_upload_path = "./Uploads/"
 # config
 app.config['SECRET_KEY'] = 'MEE-auth'
 
+# update user
+
+
+@app.route('/api/images', methods=['POST'])
+def image():
+    img = request.files['img']
+    img.save(image_upload_path+img.filename)
+    data = extract_sentences(img.filename)
+
+    return {"ack": data}, 200
 
 # update user
+
+
 @app.route('/api/users', methods=['PUT'])
 def update_user():
     user_iD = authenticate(request, app)
@@ -189,7 +202,7 @@ def interact_with_product():
     profile_data = product_profile.find_one({"productID": str(productID)})
 
     user_profile.update_one({"userID": str(user_id)}, {
-        "$addToSet": {"preference": profile_data['entities']}},  True) 
+        "$addToSet": {"preference": profile_data['entities']}},  True)
 
     return {"ack": True}, 200
 
@@ -280,7 +293,7 @@ def predict_next_word():
     array_of_words = request.form['previousWords'].strip().split(" ")
 
     if array_of_words is None:
-        return 404
+        return {"data": False}, 404
 
     if len(array_of_words) == 2:
         next_word_one = predict_one([array_of_words[-1]])
@@ -391,18 +404,18 @@ def track_image():
     if user_id is False:
         return {"auth": False}, 404
 
-    image = request.files['image']
     description = request.form.get('description', "")
 
+    image = request.files['image']
     image.save(image_upload_path+image.filename)
-
-    detected_sentence = ""  # hithushi model
+    data = extract_sentences(image.filename)
+    detected_sentence = data.replace("\n", " ")
 
     if description.strip() == "":
         return {"ask": False}, 404
 
     extracted_keyWords_from_description = make_prediction(description)
-    extracted_keyWords_from_image = []  # TODO
+    extracted_keyWords_from_image = make_prediction(detected_sentence)
 
     grouped_data = {}
     for key, value in extracted_keyWords_from_description:
@@ -411,7 +424,6 @@ def track_image():
         else:
             grouped_data[value] = [key]
 
-    grouped_data = {}
     for key, value in extracted_keyWords_from_image:
         if value in grouped_data:
             grouped_data[value].append(key)

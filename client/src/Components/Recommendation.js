@@ -17,6 +17,9 @@ export default function Recommendation(props) {
   };
 
   function extractFirst100Words(inputString) {
+    if (inputString == "undefined") {
+      return "";
+    }
     const words = inputString.split(/\s+/);
 
     const first100Words = words.slice(0, 30);
@@ -65,10 +68,13 @@ export default function Recommendation(props) {
       </div>
       {/*  */}
       <div className="text-[12px] font-semibold my-2 text-justify">
-        {extractFirst100Words(description) + "....."}
+        {extractFirst100Words(description)}
+        <span>{extractFirst100Words(description) != "" && "....."}</span>
       </div>
       <div className="mt-2" />
-      <img className=" w-full " src={url} />
+      {url.trim() && (
+        <img className=" w-full " src={"http://localhost:5000/" + url} />
+      )}
     </div>
   );
 }
