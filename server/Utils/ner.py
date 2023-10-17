@@ -58,7 +58,6 @@ model.open('.././Model/IT20221928/ner_tamil_model.crfsuite')
 
 # make prediction
 
-
 def make_prediction(sentence):
     tokenized_sentences = [indic_tokenize.trivial_tokenize(sentence.strip())]
     prediction_sentences = tokenized_sentences

@@ -12,6 +12,7 @@ import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Loading from "./Loading";
+import Translation from "./Translation";
 
 export default function Timeline() {
   //hook
@@ -24,6 +25,7 @@ export default function Timeline() {
   const [open, setOpen] = useState(false);
   const [isLoaded, setLoaded] = useState(false);
   const [maxHeight, setMaxHeight] = useState("0px");
+  const [translation, setTranslation] = useState("");
   //url
   const { BASE_URL, token } = useSelector((state) => state.auth);
 
@@ -59,8 +61,8 @@ export default function Timeline() {
         .then((res) => {
           setDescription("");
           setImage("");
-          setPreviewUrl("")
-          setNextWord([])
+          setPreviewUrl("");
+          setNextWord([]);
         })
         .catch(() => {
           toast("Unable to post!", { type: "error" });
@@ -134,6 +136,11 @@ export default function Timeline() {
     setNextWord("");
   };
 
+  const translate = () => {
+    //TODO
+    // setTranslation("");
+  };
+
   return (
     <>
       <PostImage open={open} handleClose={handleClose} />
@@ -157,6 +164,7 @@ export default function Timeline() {
               minRows={3}
               placeholder="compose new post"
             />
+            <Translation data={translation} />
             {/* next word */}
             {nextWord?.length != 0 && (
               <div

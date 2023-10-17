@@ -1,5 +1,5 @@
 import { Avatar, IconButton, TextareaAutosize } from "@mui/material";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import PostMenu from "./PostMenu";
 import ImageStack from "./ImageStack";
 import FavoriteBorderOutlinedIcon from "@mui/icons-material/FavoriteBorderOutlined";
@@ -10,13 +10,71 @@ import Comment from "./Comment";
 import axios from "axios";
 import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
+import ArrowRightIcon from "@mui/icons-material/ArrowRight";
+import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
+import Suggestion from "./Suggestion";
+import Translation from './Translation'
 
 export default function Post(props) {
   const [isLikeClicked, setLikeClicked] = useState(false);
   const [commentCount, setCommentCount] = useState(2);
   const [comment, setComment] = useState("");
+  const [nextWord, setNextWord] = useState([]);
+  const [maxHeight, setMaxHeight] = useState("0px");
+  const some = useRef();
   //url
   const { BASE_URL, token, userID } = useSelector((state) => state.auth);
+
+  function sideScroll(direction, speed, distance, step) {
+    let scrollAmount = 0;
+    var slideTimer = setInterval(function () {
+      if (direction == "left") {
+        some.current.scrollLeft += step;
+      } else {
+        some.current.scrollLeft -= step;
+      }
+      scrollAmount += 1;
+      if (scrollAmount >= distance) {
+        window.clearInterval(slideTimer);
+      }
+    }, speed);
+  }
+
+  const predictNextWord = (comment) => {
+    const data = new FormData();
+
+    data.append(
+      "previousWords",
+      comment?.trim().split(" ")?.slice(-2).join(" ")
+    );
+
+    if (!comment.trim()) {
+      return setNextWord([]);
+    }
+
+    axios
+      .post(`${BASE_URL}word-prediction/comments`, data, {
+        headers: { token: token },
+      })
+      .then((res) => {
+        if (res) {
+          setNextWord(res.data.nextWord);
+        }
+      })
+      .catch(() => {
+        setMaxHeight("0px");
+      });
+  };
+
+  const addNextWord = (val) => {
+    setComment((pre) => {
+      let data = pre.trim();
+      data += " " + val;
+      predictNextWord(data);
+      return data;
+    });
+    setNextWord("");
+  };
 
   const {
     description,
@@ -107,7 +165,7 @@ export default function Post(props) {
         {description != "undefined" && description}
       </div>
       <div className="mt-2" />
-      <ImageStack data={ url} />
+      <ImageStack data={url} />
       {url.trim() !== null && (
         <hr className="border-[#c1e9f0] border-b w-full flex-1 mt-1" />
       )}
@@ -168,6 +226,7 @@ export default function Post(props) {
               value={comment}
               onChange={(event) => {
                 setComment(event.target.value);
+                predictNextWord(event.target.value);
               }}
               className="text-[14px] font-semibold"
               style={{
@@ -184,6 +243,48 @@ export default function Post(props) {
             <SendIcon sx={{ width: 23, height: 23, color: "#333" }} />
           </IconButton>
         </div>
+        {/* nex word */}
+        {nextWord?.length != 0 && (
+          <div
+            className={` flex flex-1 flex-row items-center max-h-[${maxHeight}]  transition-all`}
+          >
+            <div>
+              <IconButton
+                onClick={() => {
+                  sideScroll("right", 25, nextWord.length, 8);
+                }}
+              >
+                <ArrowLeftIcon sx={{ color: "#299FB5" }} />
+              </IconButton>
+            </div>
+            <div
+              ref={some}
+              className="flex-1 overflow-hidden flex flex-row space-x-2"
+            >
+              {nextWord?.map((item, index) => {
+                return (
+                  <Suggestion
+                    onClick={() => {
+                      addNextWord(item);
+                    }}
+                    key={index}
+                    data={item}
+                  />
+                );
+              })}
+            </div>
+            <div>
+              <IconButton
+                onClick={() => {
+                  sideScroll("left", 25, nextWord.length, 8);
+                }}
+              >
+                <ArrowRightIcon sx={{ color: "#299FB5" }} />
+              </IconButton>
+            </div>
+          </div>
+        )}
+        <Translation data={""}/>
       </div>
     </div>
   );

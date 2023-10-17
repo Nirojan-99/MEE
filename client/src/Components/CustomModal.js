@@ -5,7 +5,6 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import UploadIcon from "@mui/icons-material/Upload";
 import { useEffect, useState } from "react";
 import axios from "axios";
-import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
 
 //react
@@ -100,7 +99,6 @@ function CustomModal(props) {
 
   return (
     <>
-      <ToastContainer />
       <Modal open={props.open} onClose={props.handleClose}>
         <Box sx={style}>
           <Box sx={{ textAlign: "center" }} width="100%">

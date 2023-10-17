@@ -70,7 +70,7 @@ export default function NavBar() {
             Account
           </a>
         </div>
-        <div className="flex  flex-row space-x-5 items-center cursor-pointer hover:bg-[#d5f1f6] p-2 rounded-full pr-3">
+        {/* <div className="flex  flex-row space-x-5 items-center cursor-pointer hover:bg-[#d5f1f6] p-2 rounded-full pr-3">
           <StorefrontOutlinedIcon sx={{ color: "#299FB5" }} />
           <a
             href="/marketplace"
@@ -78,7 +78,7 @@ export default function NavBar() {
           >
             Marketplace
           </a>
-        </div>
+        </div> */}
         <div className="flex  flex-row space-x-5 items-center cursor-pointer hover:bg-[#d5f1f6] p-2 rounded-full pr-3">
           <NotificationsNoneOutlinedIcon sx={{ color: "#299FB5" }} />
           <a className="text-[#299FB5] font-bold text-[13px]">Notification</a>

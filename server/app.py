@@ -8,7 +8,7 @@ from Utils.token import generate_token
 from flask_cors import CORS
 from Utils.auth import authenticate
 import joblib
-from Utils.predict import predict_two, predict_one
+from Utils.predict import predict_two, predict_one, predict_comment
 from Utils.ner import make_prediction
 import string
 from Utils.image import extract_sentences
@@ -284,8 +284,32 @@ def search_product():
     else:
         return {"data": False}, 404
 
+# next word prediction for comments
 
-# next word prediction
+
+@app.route('/api/word-prediction/comments', methods=['POST'])
+def predict_comment_next_word():
+    array_of_words = request.form['previousWords'].strip().split(" ")
+
+    if array_of_words is None:
+        return {"data": False}, 404
+
+    next_word = predict_comment(array_of_words)
+
+    if next_word is None:
+        return {"data": False}, 404
+
+    # Remove None values and duplicates
+    filtered_list = [item for item in next_word if item is not None]
+    filtered_list = list(dict.fromkeys(filtered_list))
+
+    # Remove words containing only punctuation and numbers
+    filtered_list = [item for item in filtered_list if not all(
+        char in string.punctuation or char.isdigit() for char in item)]
+
+    return {"nextWord": filtered_list}, 200
+
+# next word prediction for post
 
 
 @app.route('/api/word-prediction', methods=['POST'])
@@ -438,7 +462,7 @@ def track_image():
                                  "description": description, "date": date, "time": time, "userID": user_id})
 
     product_profile.insert_one(
-        {"productID": str(post_data.inserted_id), 'entities': grouped_data, "index": 0})
+        {"productID": str(post_data.inserted_id), 'entities': grouped_data, "index": 0, "detected_sentence": detected_sentence})
 
     return {"ack": True}, 200
 
