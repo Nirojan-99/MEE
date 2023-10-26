@@ -1,4 +1,4 @@
-import { Avatar, IconButton, TextareaAutosize } from "@mui/material";
+import { Avatar, IconButton, Skeleton, TextareaAutosize } from "@mui/material";
 import React, { useEffect, useRef, useState } from "react";
 import PostMenu from "./PostMenu";
 import ImageStack from "./ImageStack";
@@ -13,7 +13,8 @@ import { toast } from "react-toastify";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
 import Suggestion from "./Suggestion";
-import Translation from './Translation'
+import Translation from "./Translation";
+import TranslateIcon from "@mui/icons-material/Translate";
 
 export default function Post(props) {
   const [isLikeClicked, setLikeClicked] = useState(false);
@@ -21,6 +22,9 @@ export default function Post(props) {
   const [comment, setComment] = useState("");
   const [nextWord, setNextWord] = useState([]);
   const [maxHeight, setMaxHeight] = useState("0px");
+  const [translateOpen, setTranslateOpen] = useState(false);
+  const [isTranslationLoaded, setTranslationLoaded] = useState(true);
+  const [translation, setTranslation] = useState("");
   const some = useRef();
   //url
   const { BASE_URL, token, userID } = useSelector((state) => state.auth);
@@ -142,6 +146,47 @@ export default function Post(props) {
       .catch(() => {
         toast("Try again!", { type: "error" });
       });
+  };
+
+  const translate = () => {
+    if (!comment?.trim()) {
+      return;
+    }
+
+    setTranslationLoaded(false);
+    setTranslateOpen(true);
+
+    const options = {
+      method: "GET",
+      url: "https://nlp-translation.p.rapidapi.com/v1/translate",
+      params: {
+        text: comment,
+        to: "en",
+        from: "ta",
+      },
+      headers: {
+        "X-RapidAPI-Key": "9096355568msh9c4c57c1c38c9e5p1f33a4jsn2a2c12ba90ad",
+        "X-RapidAPI-Host": "nlp-translation.p.rapidapi.com",
+      },
+    };
+
+    axios
+      .get(options.url, {
+        params: options.params,
+        headers: options.headers,
+      })
+      .then((response) => {
+        setTranslation(response?.data?.translated_text?.en);
+        setTranslationLoaded(true);
+      })
+      .catch((error) => {
+        console.error(error);
+        setTranslationLoaded(true);
+      });
+  };
+
+  const close = () => {
+    setTranslateOpen(false);
   };
 
   return (
@@ -284,7 +329,31 @@ export default function Post(props) {
             </div>
           </div>
         )}
-        <Translation data={""}/>
+        {!isTranslationLoaded ? (
+          <div className="m-3 p-2 ">
+            <Skeleton variant="rounded" width={"100%"} height={60} />
+          </div>
+        ) : (
+          <Translation data={translation} open={translateOpen} close={close} />
+        )}
+
+        <IconButton
+          onClick={translate}
+          sx={{
+            borderRadius: 10,
+            bgcolor: "#299FB5",
+            width: "24px",
+            height: "24px",
+            "&:hover": {
+              bgcolor: "#218191",
+            },
+            mt:1
+          }}
+        >
+          <TranslateIcon
+            sx={{ width: "15px", height: "15px", color: "#fff" }}
+          />
+        </IconButton>
       </div>
     </div>
   );

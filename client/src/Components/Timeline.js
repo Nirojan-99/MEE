@@ -3,7 +3,7 @@ import AddPhotoAlternateOutlinedIcon from "@mui/icons-material/AddPhotoAlternate
 import VideocamOutlinedIcon from "@mui/icons-material/VideocamOutlined";
 import Post from "./Post";
 import Suggestion from "./Suggestion";
-import { IconButton, TextareaAutosize } from "@mui/material";
+import { IconButton, Skeleton, TextareaAutosize } from "@mui/material";
 import ArrowRightIcon from "@mui/icons-material/ArrowRight";
 import ArrowLeftIcon from "@mui/icons-material/ArrowLeft";
 import PostImage from "./PostImage";
@@ -13,6 +13,7 @@ import { useSelector } from "react-redux";
 import { toast } from "react-toastify";
 import Loading from "./Loading";
 import Translation from "./Translation";
+import TranslateIcon from "@mui/icons-material/Translate";
 
 export default function Timeline() {
   //hook
@@ -24,6 +25,8 @@ export default function Timeline() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [open, setOpen] = useState(false);
   const [isLoaded, setLoaded] = useState(false);
+  const [isTranslationLoaded, setTranslationLoaded] = useState(true);
+  const [translateOpen, setTranslateOpen] = useState(false);
   const [maxHeight, setMaxHeight] = useState("0px");
   const [translation, setTranslation] = useState("");
   //url
@@ -137,8 +140,44 @@ export default function Timeline() {
   };
 
   const translate = () => {
-    //TODO
-    // setTranslation("");
+    if (!description?.trim()) {
+      return;
+    }
+
+    setTranslationLoaded(false);
+    setTranslateOpen(true);
+
+    const options = {
+      method: "GET",
+      url: "https://nlp-translation.p.rapidapi.com/v1/translate",
+      params: {
+        text: description,
+        to: "en",
+        from: "ta",
+      },
+      headers: {
+        "X-RapidAPI-Key": "9096355568msh9c4c57c1c38c9e5p1f33a4jsn2a2c12ba90ad",
+        "X-RapidAPI-Host": "nlp-translation.p.rapidapi.com",
+      },
+    };
+
+    axios
+      .get(options.url, {
+        params: options.params,
+        headers: options.headers,
+      })
+      .then((response) => {
+        setTranslation(response?.data?.translated_text?.en);
+        setTranslationLoaded(true);
+      })
+      .catch((error) => {
+        console.error(error);
+        setTranslationLoaded(true);
+      });
+  };
+
+  const close = () => {
+    setTranslateOpen(false);
   };
 
   return (
@@ -164,7 +203,19 @@ export default function Timeline() {
               minRows={3}
               placeholder="compose new post"
             />
-            <Translation data={translation} />
+
+            {!isTranslationLoaded ? (
+              <div className="m-3 p-2 ">
+                <Skeleton variant="rounded" width={"100%"} height={60} />
+              </div>
+            ) : (
+              <Translation
+                data={translation}
+                open={translateOpen}
+                close={close}
+              />
+            )}
+
             {/* next word */}
             {nextWord?.length != 0 && (
               <div
@@ -254,9 +305,32 @@ export default function Timeline() {
             </div>
             <div className="flex-1" />
             <div>
+              {/* <button
+                onClick={translate}
+                className="text-white font-bold text-[13px] bg-[#299FB5] px-4 py-1 rounded-full mr-3 hover:bg-[#218191]"
+              >
+                Translate
+              </button> */}
+              <IconButton
+                onClick={translate}
+                sx={{
+                  borderRadius: 10,
+                  bgcolor: "#299FB5",
+                  width: "24px",
+                  height: "24px",
+                  mr: 1,
+                  "&:hover": {
+                    bgcolor: "#218191",
+                  },
+                }}
+              >
+                <TranslateIcon
+                  sx={{ width: "15px", height: "15px", color: "#fff" }}
+                />
+              </IconButton>
               <button
                 onClick={addPost}
-                className="text-white font-bold text-[13px] bg-[#299FB5] px-4 py-1 rounded-full"
+                className="text-white font-bold text-[13px] bg-[#299FB5] px-4 py-1 rounded-full hover:bg-[#218191]"
               >
                 POST
               </button>
