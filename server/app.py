@@ -289,6 +289,7 @@ def search_product():
 
 @app.route('/api/word-prediction/comments', methods=['POST'])
 def predict_comment_next_word():
+    print(request.form['previousWords'])
     array_of_words = request.form['previousWords'].strip().split(" ")
 
     if array_of_words is None:

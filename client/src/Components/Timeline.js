@@ -188,6 +188,7 @@ export default function Timeline() {
         <div className="bg-[#eaf8fa] rounded-xl mt-5">
           <div className="p-2 border-b border-[#97dbe7] overflow-visible">
             <TextareaAutosize
+            id="description"
               value={description}
               onChange={(event) => {
                 predictNextWord(event.target.value);
@@ -329,6 +330,7 @@ export default function Timeline() {
                 />
               </IconButton>
               <button
+              id="post"
                 onClick={addPost}
                 className="text-white font-bold text-[13px] bg-[#299FB5] px-4 py-1 rounded-full hover:bg-[#218191]"
               >

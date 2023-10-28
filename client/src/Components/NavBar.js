@@ -52,7 +52,7 @@ export default function NavBar() {
         <Avatar sx={{ bgcolor: "#299FB5", width: 28, height: 28 }} src="">
           {username.split("")[0]}
         </Avatar>
-        <div className="font-sans font-bold text-[15px] text-[#1e8494]">
+        <div className="font-sans font-bold text-[15px] text-[#1e8494]" id="userName">
           {username}
         </div>
       </div>
@@ -103,7 +103,7 @@ export default function NavBar() {
           className="flex  flex-row space-x-5 items-center cursor-pointer hover:bg-[#d5f1f6] p-2 rounded-full pr-3"
         >
           <LogoutIcon sx={{ color: "#299FB5" }} />
-          <div className="text-[#299FB5] font-bold text-[13px]">Logout</div>
+          <div className="text-[#299FB5] font-bold text-[13px]" id="logout">Logout</div>
         </div>
       </div>
     </div>

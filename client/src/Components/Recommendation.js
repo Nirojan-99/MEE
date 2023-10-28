@@ -73,7 +73,7 @@ export default function Recommendation(props) {
       </div>
       <div className="mt-2" />
       {url.trim() && (
-        <img className=" w-full " src={"http://localhost:5000/" + url} />
+        <img className=" w-full " src={BASE_URL.split("api/")[0] + url} />
       )}
     </div>
   );

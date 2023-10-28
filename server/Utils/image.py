@@ -4,7 +4,7 @@ import cv2
 import pickle
 import os
 
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+# pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
 
 # with open(".././Model/IT20175702/my_trained_model.h5", "rb") as file:
 #     loaded_model = pickle.load(file)
